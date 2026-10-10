@@ -24,7 +24,46 @@ CREATE TABLE IF NOT EXISTS claims(
 CREATE TABLE IF NOT EXISTS callbacks(
   id INTEGER PRIMARY KEY AUTOINCREMENT, policy_no TEXT, mobile TEXT, reason TEXT,
   dealer TEXT, tried TEXT, created_at TEXT, assigned_at TEXT, status TEXT);
+CREATE TABLE IF NOT EXISTS approvals(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, dealer TEXT, insurer TEXT, policy_no TEXT,
+  detail TEXT, amount INT, raised_by TEXT, status TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS inspections(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, insurer TEXT, customer TEXT, model TEXT,
+  photos INT, status TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS services(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, mobile TEXT, customer TEXT, model TEXT,
+  slot TEXT, kind TEXT, status TEXT);
+CREATE TABLE IF NOT EXISTS messages(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, mobile TEXT, channel TEXT, direction TEXT,
+  body TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS consents(
+  mobile TEXT, purpose TEXT, granted INT, at TEXT, PRIMARY KEY(mobile, purpose));
+CREATE TABLE IF NOT EXISTS rides(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, km REAL, max_speed INT, score INT,
+  speed INT, braking INT, cornering INT, phone INT, at TEXT);
+CREATE TABLE IF NOT EXISTS loans(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, policy_no TEXT, lender TEXT, amount INT,
+  tenure INT, rate REAL, emi INT, status TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS leads(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, customer TEXT, mobile TEXT, model TEXT,
+  reg_no TEXT, source TEXT, consent INT, status TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS calls(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, policy_no TEXT, outcome TEXT, note TEXT,
+  next_date TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS joblog(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT, dealer TEXT, summary TEXT, at TEXT);
 """
+TABLES = ["policies", "claims", "callbacks", "approvals", "inspections", "services", "messages",
+          "consents", "rides", "loans", "leads", "calls", "joblog"]
+
+
+def now():
+    return datetime.now().isoformat(timespec="seconds")
+
+
+def log_msg(dealer, mobile, body, channel="WhatsApp", direction="out"):
+    run("INSERT INTO messages(dealer,mobile,channel,direction,body,at) VALUES(?,?,?,?,?,?)",
+        (dealer, mobile, channel, direction, body, now()))
 
 
 def conn():
@@ -66,7 +105,7 @@ def seed(n=260, force=False):
     with conn() as c:
         if not force and c.execute("SELECT COUNT(*) FROM policies").fetchone()[0]:
             return
-        for t in ("policies", "claims", "callbacks"):
+        for t in TABLES:
             c.execute(f"DELETE FROM {t}")
     rnd = random.Random(42)
     for i in range(n):
@@ -108,6 +147,105 @@ def seed(n=260, force=False):
             (r.policy_no, r.mobile, rnd.choice(["Renewal query", "Claim help", "Service booking"]),
              r.dealer, r.dealer, when.isoformat(timespec="seconds"),
              when.isoformat(timespec="seconds"), "Open"))
+    _seed_extras(rnd)
+
+
+def _seed_extras(rnd):
+    pols = q("SELECT * FROM policies")
+    for _, r in pols.sample(10, random_state=1).iterrows():
+        kind = rnd.choice(["Discount request", "Claim estimate above limit", "Endorsement"])
+        run("INSERT INTO approvals(kind,dealer,insurer,policy_no,detail,amount,raised_by,status,created_at)"
+            " VALUES(?,?,?,?,?,?,?,?,?)",
+            (kind, r.dealer, r.insurer, r.policy_no,
+             {"Discount request": "OD discount 10% to match competitor",
+              "Claim estimate above limit": "Workshop estimate exceeds auto-approve limit",
+              "Endorsement": "Change of address / hypothecation"}[kind],
+             rnd.randint(800, 25000), "Dealer", "Pending", now()))
+    for _, r in pols[pols.vehicle_type == "Pre-owned"].head(6).iterrows():
+        run("INSERT INTO inspections(dealer,insurer,customer,model,photos,status,created_at) VALUES(?,?,?,?,?,?,?)",
+            (r.dealer, r.insurer, r.customer, r.model, rnd.randint(4, 8), "Pending", now()))
+    for _, r in pols.sample(12, random_state=2).iterrows():
+        d = today() + timedelta(days=rnd.randint(-3, 10))
+        run("INSERT INTO services(dealer,mobile,customer,model,slot,kind,status) VALUES(?,?,?,?,?,?,?)",
+            (r.dealer, r.mobile, r.customer, r.model, f"{d} {rnd.choice(['10:00','12:00','15:00'])}",
+             rnd.choice(["Periodic service", "Accident repair", "Tyre change"]),
+             "Done" if d < today() else "Booked"))
+    for _, r in pols.drop_duplicates("mobile").iterrows():
+        for p in ("Policy servicing", "Ride reminders", "Ride score (sensors)", "Offers & renewals"):
+            run("INSERT OR REPLACE INTO consents VALUES(?,?,?,?)", (r.mobile, p, int(rnd.random() < 0.85), now()))
+        for _ in range(rnd.randint(0, 4)):
+            s = [rnd.randint(55, 99) for _ in range(4)]
+            run("INSERT INTO rides(mobile,km,max_speed,score,speed,braking,cornering,phone,at) VALUES(?,?,?,?,?,?,?,?,?)",
+                (r.mobile, round(rnd.uniform(3, 60), 1), rnd.randint(40, 95), ride_score(*s), *s,
+                 (datetime.now() - timedelta(days=rnd.randint(0, 30))).isoformat(timespec="seconds")))
+    for d in list(DEALERS)[:6]:
+        for _ in range(2):
+            run("INSERT INTO leads(dealer,customer,mobile,model,reg_no,source,consent,status,at) VALUES(?,?,?,?,?,?,?,?,?)",
+                (d, f"{rnd.choice(FIRST)} {rnd.choice(LAST)}", f"9{rnd.randint(100000000, 999999999)}",
+                 rnd.choice(OEMS[DEALERS[d][1]])[0], f"DL{rnd.randint(1, 13):02d}AB{rnd.randint(1000, 9999)}",
+                 "Workshop walk-in", 1, "New", now()))
+
+
+def persistency(group_by, where="1=1", params=()):
+    """Share of policies that expired in the last 12 months and were renewed by the same rider."""
+    pol = q(f"SELECT * FROM policies WHERE {where}", params)
+    allp = q("SELECT mobile, start_date FROM policies")
+    t = today().isoformat()
+    exp = pol[(pol.end_date < t) & (pol.end_date >= (today() - timedelta(days=365)).isoformat())].copy()
+    if exp.empty:
+        return pd.DataFrame()
+    exp["renewed"] = exp.apply(lambda r: bool(((allp.mobile == r.mobile) & (allp.start_date > r.start_date)).any()),
+                               axis=1)
+    g = exp.groupby(group_by).agg(expired=("policy_no", "count"), renewed=("renewed", "sum")).reset_index()
+    g["persistency_%"] = (100 * g.renewed / g.expired).round(1)
+    return g
+
+
+def ride_score(speed, braking, cornering, phone):
+    return round(0.35 * speed + 0.25 * braking + 0.2 * cornering + 0.2 * phone)
+
+
+# ---------------------------------------------------------------- AI autopilot jobs
+def job_renewals(dealer, window=30):
+    """Renewal cycle: find policies expiring in the window, send nudge, queue discount asks for approval."""
+    t, e = today().isoformat(), (today() + timedelta(days=window)).isoformat()
+    due = q("SELECT * FROM policies WHERE dealer=? AND end_date BETWEEN ? AND ?", (dealer, t, e))
+    renewed = set(q("SELECT mobile FROM policies WHERE dealer=? AND start_date > ?", (dealer, t)).mobile)
+    sent = 0
+    for _, r in due.iterrows():
+        if r.mobile in renewed:
+            continue
+        days = (date.fromisoformat(r.end_date) - today()).days
+        log_msg(dealer, r.mobile, f"Hi {r.customer.split()[0]}, your {r.model} policy expires in {days} days. "
+                                  "Tap to see renewal quotes from 5 insurers.")
+        sent += 1
+        if days <= 7:
+            run("INSERT INTO approvals(kind,dealer,insurer,policy_no,detail,amount,raised_by,status,created_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?)", ("Discount request", dealer, r.insurer, r.policy_no,
+                 f"AI suggests retention discount, {days} days to expiry", int(r.premium * .05), "AI autopilot",
+                 "Pending", now()))
+    s = f"{len(due)} due in {window} days · {sent} nudges sent · discounts need human approval"
+    run("INSERT INTO joblog(job,dealer,summary,at) VALUES(?,?,?,?)", ("Renewal cycle", dealer, s, now()))
+    return s
+
+
+def job_callbacks(dealer):
+    moved = reroute_overdue()
+    open_ = q("SELECT COUNT(*) n FROM callbacks WHERE dealer=? AND status='Open'", (dealer,)).n[0]
+    s = f"{open_} open for this dealer · {moved} overdue rerouted network-wide"
+    run("INSERT INTO joblog(job,dealer,summary,at) VALUES(?,?,?,?)", ("Call-back queue", dealer, s, now()))
+    return s
+
+
+def job_night(dealer):
+    """Night reconciliation: dealer-collected premium vs remittance; flag mismatches."""
+    p = q("SELECT * FROM policies WHERE dealer=? AND pay_mode='Paid at dealer'", (dealer,))
+    pend = p[p.remitted == 0]
+    old = pend[pd.to_datetime(pend.start_date) < pd.Timestamp(today() - timedelta(days=2))]
+    s = (f"{len(p)} dealer-collected policies · ₹{int(pend.premium.sum()):,} pending · "
+         f"{len(old)} older than 2 days flagged")
+    run("INSERT INTO joblog(job,dealer,summary,at) VALUES(?,?,?,?)", ("Night reconciliation", dealer, s, now()))
+    return s, old
 
 
 def nearest_dealer(current, tried):

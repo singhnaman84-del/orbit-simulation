@@ -43,7 +43,11 @@ DEALERS = {
 FIRST = ["Aman", "Rohit", "Priya", "Karan", "Neha", "Vikram", "Sana", "Arjun", "Meera", "Rahul",
          "Pooja", "Imran", "Simran", "Deepak", "Ankit", "Ritu", "Manish", "Kavya", "Sahil", "Tanvi"]
 LAST = ["Sharma", "Verma", "Singh", "Gupta", "Khan", "Yadav", "Mehta", "Rawat", "Joshi", "Kapoor"]
-GARAGES = ["Dealer workshop", "Other dealer", "Outside garage"]
+LENDERS = {  # fictional NBFC partners for premium finance: (name, annual rate %, processing fee Rs.)
+    "Udaan Finance": (14.0, 199), "Setu Credit": (15.5, 0), "Pragati NBFC": (13.0, 299)}
+PLANS = {  # dealer SaaS plans (placeholder pricing): (monthly fee, included policies, per extra policy)
+    "Starter": (1999, 50, 25), "Growth": (4999, 200, 18), "Network": (9999, 600, 12)}
+GARAGES =["Dealer workshop", "Other dealer", "Outside garage"]
 
 
 def model_info(oem, model):

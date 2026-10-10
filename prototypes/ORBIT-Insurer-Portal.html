@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ORBIT Insurer Portal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: top bar with section tabs, wide work area of queues and benchmarks */
+:root{--bg:#EEF1F4;--surface:#FFFFFF;--fg:#0E1A2B;--muted:#4A5568;--line:#D5DBE3;--accent:#C2500F;--accent-soft:#FBE6D8;--blue:#1F5FBF;--blue-soft:#E3ECF9;--good:#1E7A46;--good-soft:#E1F2E8;--warn:#9A4A0B;--bar:#13304F;--bar-fg:#FFFFFF;--bar-muted:#A9BBD0;
+--display:'Archivo',system-ui,sans-serif;--body:'IBM Plex Sans','Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--good-soft:#14301F;--warn:#F0A060;--bar:#081A2E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--good-soft:#14301F;--warn:#F0A060;--bar:#081A2E;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+header{background:var(--bar);color:var(--bar-fg);padding-inline:clamp(16px,3vw,32px);padding-block:14px 0;display:flex;flex-direction:column;gap:10px}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand b{font-family:var(--display);font-weight:800;letter-spacing:.08em;font-size:20px}
+.brand span{font-size:13px;color:var(--bar-muted)}
+.tabs{display:flex;gap:4px;overflow-x:auto}
+.tab{font:inherit;font-size:14px;background:none;border:none;color:var(--bar-muted);padding:10px 12px;min-height:44px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.tab[aria-current="page"]{color:var(--bar-fg);border-bottom-color:var(--accent);font-weight:600}
+main{max-width:1280px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:24px 48px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:800;font-size:28px;margin:0}
+.sub{color:var(--muted);margin:0;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi b{display:block;font-family:var(--mono);font-weight:500;font-size:28px;font-variant-numeric:tabular-nums}
+.kpi small{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{font-family:var(--display);font-size:19px;margin:0}
+.cols{display:flex;flex-wrap:wrap;gap:18px}.cols>*{flex:1 1 360px;min-width:0}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:680px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tag{font-size:12px;border-radius:99px;padding:3px 10px;background:var(--good-soft);color:var(--good);white-space:nowrap}
+.tag.w{background:var(--accent-soft);color:var(--warn)}.tag.b{background:var(--blue-soft);color:var(--blue)}
+.btn{font:inherit;font-size:13px;font-weight:600;border:none;border-radius:8px;min-height:36px;padding:0 12px;cursor:pointer;background:var(--fg);color:var(--bg)}
+.btn.g{background:transparent;color:var(--fg);border:1.5px solid var(--line)}
+.btn:focus-visible,.tab:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.bar{height:10px;border-radius:5px;background:var(--line);position:relative;min-width:120px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--blue)}
+.bar.w i{background:var(--accent)}
+.lock{background:var(--blue-soft);border-radius:10px;padding:12px;font-size:14px}
+.note{font-size:12px;color:var(--muted)}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--fg);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;max-width:360px}
+</style>
+
+<header>
+<div class="brand"><b>ORBIT · Insurer</b><span>Insurer A · motor claims operations · sample data</span></div>
+<nav class="tabs" aria-label="Portal">
+<button class="tab" data-v="overview">Overview</button>
+<button class="tab" data-v="approvals">Approvals</button>
+<button class="tab" data-v="inspections">Inspections</button>
+<button class="tab" data-v="fraud">Fraud graph</button>
+<button class="tab" data-v="telematics">Telematics</button>
+<button class="tab" data-v="persist">Persistency</button>
+<button class="tab" data-v="lossd">Dealer loss ratio</button>
+<button class="tab" data-v="bench">Benchmarks</button>
+<button class="tab" data-v="billing">Billing</button>
+</nav>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const S={v:'overview',queue:[
+ {id:'CL-2041',bike:'Classic 350 Chrome',dealer:'[Dealer] Lucknow',amt:'₹[x]',age:'2 h',ai:'Matches twin',st:'open'},
+ {id:'CL-2043',bike:'Hunter 350',dealer:'[Dealer] Kanpur',amt:'₹[x]',age:'5 h',ai:'Matches twin',st:'open'},
+ {id:'CL-2047',bike:'Meteor 350',dealer:'[Dealer] Agra',amt:'₹[x]',age:'9 h',ai:'Prior damage on tank',st:'open'},
+ {id:'CL-2052',bike:'Audi Q5',dealer:'[Dealer] Noida',amt:'₹[x]',age:'1 d',ai:'Matches twin',st:'open'}],paid:false};
+const $=s=>document.querySelector(s);
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+const H=(t,s)=>`<div><h1>${t}</h1><p class="sub">${s}</p></div>`;
+const V={
+overview:()=>H('Overview','Two-wheeler and car claims run through ORBIT workshops, October')+`
+<div class="panel" style="background:var(--bar);color:#FFFFFF;border-color:var(--bar);flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center"><div><span style="font-size:13px;color:var(--bar-muted)">North-star metric · your customers on ORBIT</span><div style="font-family:var(--mono);font-size:40px;color:#FFB27A;line-height:1.1">5.0 days</div><span style="font-size:13px;color:var(--bar-muted)">Average back on road · market median 7.4</span></div><div style="font-size:14px;max-width:340px">Every service ORBIT runs for you is judged against this one number: how fast your policyholder's vehicle is back on the road.</div></div>
+<div class="kpis"><div class="kpi"><span>Avg approval time</span><b>6 h</b><small>Your in-house: [x] h</small></div><div class="kpi"><span>Avg DO time</span><b>1.2 d</b><small>Market median 2.1 d</small></div><div class="kpi"><span>Back on road</span><b>5 d</b><small>Classic 350, UP</small></div><div class="kpi"><span>Cost per claim</span><b>₹[x]</b><small>Target 30% below in-house</small></div></div>
+<div class="cols"><div class="panel"><h2>Needs you today</h2><div class="tbl"><table style="min-width:420px"><tr><th>Item</th><th>Count</th><th></th></tr>
+<tr><td>Estimates awaiting approval</td><td class="n">${S.queue.filter(q=>q.st==='open').length}</td><td><button class="btn" data-go="approvals">Review</button></td></tr>
+<tr><td>Break-in inspections done</td><td class="n">5</td><td><button class="btn g" data-go="inspections">Open</button></td></tr>
+<tr><td>Fraud links flagged</td><td class="n">2</td><td><button class="btn g" data-go="fraud">Open</button></td></tr></table></div></div>
+<div class="panel"><h2>Expense limit glide path</h2><p>Proposed EoM limit falls to <b>20% of GDPI</b> in 5 years from FY2027-28.</p><div class="bar w"><i style="width:62%"></i></div><p class="note">Your FY26 expense ratio [x]% · bar shows sample progress to target</p></div></div>`,
+approvals:()=>H('Estimate approvals','AI estimate checked against each vehicle\'s digital twin')+`
+<div class="panel"><div class="tbl"><table><tr><th>Claim</th><th>Vehicle</th><th>Workshop</th><th>Estimate</th><th>Waiting</th><th>Twin check</th><th>Action</th></tr>
+${S.queue.map((q,i)=>`<tr><td class="n">${q.id}</td><td>${q.bike}</td><td>${q.dealer}</td><td class="n">${q.amt}</td><td>${q.age}</td><td>${q.ai.startsWith('Matches')?`<span class="tag">${q.ai}</span>`:`<span class="tag w">${q.ai}</span>`}</td><td>${q.st==='open'?`<button class="btn" data-ok="${i}">Approve</button> <button class="btn g" data-sv="${i}">Send surveyor</button>`:`<span class="tag b">${q.st}</span>`}</td></tr>`).join('')}</table></div>
+<p class="note">Approval sends the DO path to the workshop and updates the customer's claim tracker.</p></div>`,
+inspections:()=>H('Break-in inspections','Geo-tagged photos from ORBIT workshops')+`
+<div class="panel"><div class="tbl"><table><tr><th>Vehicle</th><th>Lapsed</th><th>Workshop</th><th>Photos</th><th>Result</th><th></th></tr>
+<tr><td>Bullet 350</td><td>19 days</td><td>[Dealer] Lucknow</td><td>8, geo-tagged</td><td><span class="tag">No damage</span></td><td><button class="btn" data-toast="Policy cleared for issuance">Clear to issue</button></td></tr>
+<tr><td>Classic 350</td><td>42 days</td><td>[Dealer] Kanpur</td><td>8, geo-tagged</td><td><span class="tag w">Scratch, rear fender</span></td><td><button class="btn g" data-toast="Excluded pre-existing damage noted">Note exclusion</button></td></tr></table></div></div>`,
+fraud:()=>H('Fraud graph','Links across claims, workshops, documents and phones')+`
+<div class="panel"><h2>Flagged links</h2><div class="tbl"><table><tr><th>Pattern</th><th>Claims</th><th>Strength</th><th></th></tr>
+<tr><td>Same mobile on 3 claimants in 60 days</td><td class="n">3</td><td><div class="bar w"><i style="width:80%"></i></div></td><td><button class="btn" data-toast="Sent to investigation team">Investigate</button></td></tr>
+<tr><td>Repeated invoice template across 2 workshops</td><td class="n">5</td><td><div class="bar"><i style="width:45%"></i></div></td><td><button class="btn g" data-toast="Marked for watch">Watch</button></td></tr></table></div>
+<p class="note">Flags are leads for review, never automatic rejections.</p></div>`,
+telematics:()=>H('Telematics','Consented drive scores for pay-how-you-drive and pay-as-you-drive add-ons')+`
+<div class="lock"><b>Insurer-only data.</b> Scores reach only the insurer the customer chose. Dealers on ORBIT cannot see them, and routes are never shared.</div>
+<div class="kpis"><div class="kpi"><span>Policies with consent</span><b>1,204</b></div><div class="kpi"><span>Avg drive score</span><b>78</b></div><div class="kpi"><span>Low-km riders</span><b>31%</b><small>under [x] km a year</small></div></div>
+<div class="panel"><h2>Score bands</h2><div class="tbl"><table style="min-width:420px"><tr><th>Score</th><th>Policies</th><th>Share</th></tr>
+<tr><td>85 and above</td><td class="n">402</td><td><div class="bar"><i style="width:33%"></i></div></td></tr>
+<tr><td>70–84</td><td class="n">588</td><td><div class="bar"><i style="width:49%"></i></div></td></tr>
+<tr><td>Below 70</td><td class="n">214</td><td><div class="bar w"><i style="width:18%"></i></div></td></tr></table></div>
+<p class="note">Discounts follow your IRDAI-approved telematics add-on.</p></div>`,
+persist:()=>H('Dealer persistency','Renewal retention by dealer on your motor book, last 12 months')+`
+<div class="kpis"><div class="kpi"><span>Your motor renewal rate</span><b>71%</b><small>via ORBIT dealers</small></div><div class="kpi"><span>Retained after claim</span><b>84%</b></div><div class="kpi"><span>Early cancellations</span><b>1.9%</b></div></div>
+<div class="panel"><h2>By dealer</h2><div class="tbl"><table><tr><th>Dealer</th><th>Policies due</th><th>Persistency score</th><th>Renewal rate</th><th>Retained after claim</th><th></th></tr>
+<tr><td>[Dealer] Lucknow</td><td class="n">412</td><td class="n">81</td><td><div class="bar"><i style="width:78%"></i></div></td><td class="n">88%</td><td><span class="tag">Preferred</span></td></tr>
+<tr><td>[Dealer] Kanpur</td><td class="n">305</td><td class="n">74</td><td><div class="bar"><i style="width:70%"></i></div></td><td class="n">82%</td><td><span class="tag b">Standard</span></td></tr>
+<tr><td>[Dealer] Agra</td><td class="n">268</td><td class="n">62</td><td><div class="bar w"><i style="width:58%"></i></div></td><td class="n">71%</td><td><button class="btn g" data-toast="Review meeting requested with dealer">Review</button></td></tr></table></div>
+<p class="note">Use persistency, not volume, to decide where to offer better servicing terms. Commission caps stay as filed.</p></div>`,
+lossd:()=>H('Loss ratio by dealer','Your policies issued through each ORBIT dealer · claims reported anywhere · last 12 months')+`<div class="panel"><div class="tbl"><table><tr><th>Dealer</th><th>Policies</th><th>Earned premium</th><th>Claims at that dealer</th><th>Claims elsewhere</th><th>Loss ratio</th><th>Persistency</th></tr>
+<tr><td>Lucknow Royal Riders</td><td class="n">812</td><td class="n">₹182.4 L</td><td class="n">61</td><td class="n">24</td><td><span class="tag">55.5%</span></td><td class="n">81</td></tr>
+<tr><td>Kanpur Thunder Motors</td><td class="n">540</td><td class="n">₹118.0 L</td><td class="n">39</td><td class="n">30</td><td><span class="tag b">72.4%</span></td><td class="n">74</td></tr>
+<tr><td>Agra Highway Bikes</td><td class="n">301</td><td class="n">₹63.5 L</td><td class="n">18</td><td class="n">27</td><td><span class="tag w">88.9%</span></td><td class="n">66</td></tr></table></div><p class="note">Loss ratio = (claims paid + outstanding) ÷ earned premium. Sample figures. Use with persistency to set servicing terms; commission caps stay as filed.</p></div>`,
+bench:()=>H('Benchmarks','Classic 350, Uttar Pradesh, last 12 months, averages')+`
+<div class="panel"><div class="tbl"><table><tr><th>Insurer</th><th>Claims</th><th>Approval</th><th>DO time</th><th>Back on road</th><th>Settled</th></tr>
+<tr><td><b>You (Insurer A)</b></td><td class="n">84</td><td class="n">6 h</td><td class="n">1.2 d</td><td class="n">5 d</td><td class="n">92%</td></tr>
+<tr><td>Insurer B</td><td class="n">61</td><td class="n">14 h</td><td class="n">2.5 d</td><td class="n">8 d</td><td class="n">85%</td></tr>
+<tr><td>Insurer C</td><td class="n">33</td><td class="n">20 h</td><td class="n">3 d</td><td class="n">11 d</td><td class="n">78%</td></tr></table></div>
+<p class="note">These are the same figures customers see in the Glass Box when comparing quotes. Method: averages over the last 12 months, minimum 30 claims per figure, outliers above the 99th percentile excluded.</p><button class="btn g" style="align-self:flex-start" data-toast="Data dispute raised; an independent reviewer responds within 7 days">Raise a data dispute</button></div>`,
+billing:()=>H('Billing','Per-task fees from the ORBIT services company')+`
+<div class="panel"><div class="tbl"><table><tr><th>Service</th><th>Units, Oct</th><th>Rate</th><th>Amount</th><th>Status</th></tr>
+<tr><td>Workshop claims handling</td><td class="n">27</td><td class="n">₹[x] per claim</td><td class="n">₹[x]</td><td>${S.paid?'<span class="tag">Paid</span>':'<span class="tag b">E-invoice issued</span>'}</td></tr>
+<tr><td>Pre-inspection</td><td class="n">5</td><td class="n">₹[x] each</td><td class="n">₹[x]</td><td>${S.paid?'<span class="tag">Paid</span>':'<span class="tag b">E-invoice issued</span>'}</td></tr>
+<tr><td>Fraud alerts</td><td class="n">2</td><td class="n">₹[x] each</td><td class="n">₹[x]</td><td>${S.paid?'<span class="tag">Paid</span>':'<span class="tag b">E-invoice issued</span>'}</td></tr></table></div>
+<p class="note">Never priced as a share of premium; open to cost audit.</p>${S.paid?'':'<button class="btn" id="pay" style="align-self:flex-start">Mark as paid</button>'}</div>`};
+function render(){$('#main').innerHTML=V[S.v]();document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-current',t.dataset.v===S.v?'page':'false'))}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.v||b.dataset.go){S.v=b.dataset.v||b.dataset.go;render();window.scrollTo(0,0);return}
+ if(b.dataset.toast){toast(b.dataset.toast);return}
+ if(b.dataset.ok){S.queue[b.dataset.ok].st='Approved';render();toast('Approved; workshop and customer updated');return}
+ if(b.dataset.sv){S.queue[b.dataset.sv].st='Surveyor sent';render();toast('Surveyor assigned');return}
+ if(b.id==='pay'){S.paid=true;render();toast('Marked as paid');return}});
+render();
+</script>
+
+</body>
+</html>

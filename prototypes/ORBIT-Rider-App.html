@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ORBIT Rider App</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: phone-width app, centered on desktop, bottom tab bar */
+:root{--bg:#E6EAF0;--app:#F2F4F7;--surface:#FFFFFF;--fg:#0E1A2B;--muted:#4A5568;--line:#D5DBE3;--accent:#C2500F;--accent-soft:#FBE6D8;--blue:#1F5FBF;--blue-soft:#E3ECF9;--good:#1E7A46;--warn:#9A4A0B;--head:#0E1A2B;--head-fg:#FFFFFF;--head-sub:#B8C2D0;
+--display:'Archivo',system-ui,sans-serif;--body:'IBM Plex Sans','Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#060B14;--app:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--warn:#F0A060;--head:#060B14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#060B14;--app:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--warn:#F0A060;--head:#060B14;color-scheme:dark}
+[hidden]{display:none!important}
+.dname{display:inline!important}
+.notif{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:396px;z-index:50;background:rgba(250,250,252,.97);color:#0E1A2B;border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(14,26,43,.28);display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.4;cursor:pointer}
+.notif .nhead{display:flex;align-items:center;gap:8px;font-size:12px;color:#4A5568}
+.notif .nicon{width:22px;height:22px;border-radius:6px;color:#FFFFFF;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.notif .ntime{margin-left:auto}
+.notif b{font-size:14px}
+@media (prefers-reduced-motion:no-preference){.notif.show{animation:drop .35s ease-out}@keyframes drop{from{transform:translate(-50%,-120%)}to{transform:translate(-50%,0)}}}
+.dbrand{display:flex;align-items:center;gap:10px}
+.brand .dbrand b,.dbrand b{font-family:var(--display);font-size:16px;letter-spacing:0;display:block;line-height:1.2}
+.dbrand small{display:block;font-size:10px;color:var(--head-sub);letter-spacing:.06em;text-transform:uppercase}
+.dmark{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:13px;color:#FFFFFF;flex:none}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:0}
+.phone{max-width:420px;margin:0 auto;min-height:100%;background:var(--app);display:flex;flex-direction:column;position:relative}
+.top{background:var(--head);color:var(--head-fg);padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;justify-content:space-between;align-items:center}
+.brand b{font-family:var(--display);font-weight:800;letter-spacing:.08em;font-size:19px}
+.chip{font-size:11px;border:1px solid #4B5667;border-radius:99px;padding:2px 8px;color:var(--head-sub)}
+.top h1{font-family:var(--display);font-weight:800;font-size:23px;margin:4px 0 0;line-height:1.2}
+.top p{margin:0;color:var(--head-sub);font-size:13px}
+main{flex:1;padding:14px 16px 96px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.card.sel{border:2px solid var(--blue)}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.small{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{font-size:11px;color:var(--muted)}
+.stats b{display:block;font-family:var(--mono);font-size:15px;color:var(--fg);font-weight:500}
+h2{font-family:var(--display);font-size:17px;margin:6px 0 0}
+.btn{font:inherit;font-weight:600;border:none;border-radius:12px;min-height:48px;padding:0 16px;cursor:pointer;background:var(--accent);color:#FFFFFF}
+.btn.ghost{background:transparent;color:var(--fg);border:1.5px solid var(--fg)}
+.btn.small{min-height:40px;font-size:13px}
+.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font:inherit;font-size:12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 12px;min-height:34px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--fg);color:var(--app);border-color:var(--fg)}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tab{font:inherit;font-size:11px;background:none;border:none;color:var(--muted);min-height:58px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tab[aria-current="page"]{color:var(--accent);font-weight:600}
+.timeline{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:22px 1fr;gap:10px}
+.dot{width:14px;height:14px;border-radius:99px;border:2px solid var(--muted);margin-top:3px}
+.dot.done{background:var(--blue);border-color:var(--blue)}
+.dot.now{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.line{width:2px;height:28px;background:var(--line);margin-left:6px}
+.step b{display:block;font-size:14px}
+.notice{background:var(--blue-soft);border-radius:12px;padding:12px;font-size:13px}
+.alert{background:var(--accent-soft);border-radius:12px;padding:12px;font-size:13px}
+.alert b{color:var(--warn)}
+label.check{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;cursor:pointer}
+label.check input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--accent)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:48px;font-size:13px}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.emi{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.emi button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 4px;cursor:pointer}
+.emi button[aria-pressed="true"]{border:2px solid var(--fg)}
+.field{display:flex;gap:8px;align-items:flex-end}
+.field label{flex:1;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+input[type=text]{font:inherit;font-size:15px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 12px}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:var(--fg);color:var(--app);border-radius:10px;padding:10px 14px;font-size:13px;max-width:360px}
+.score{font-family:var(--mono);font-size:40px;line-height:1}
+.overlay{position:absolute;inset:0;background:var(--app);z-index:5;display:flex;flex-direction:column}
+@media (prefers-reduced-motion:no-preference){.btn,.pill,.tab{transition:background .15s,color .15s}}
+/* Laptop layout: sidebar navigation, wider two-column content */
+@media (min-width:900px){
+ body{padding-block:24px;padding-inline:24px}
+ .phone{max-width:1200px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:auto 1fr;border-radius:18px;overflow:hidden;min-height:calc(100vh - 48px);border:1px solid var(--line)}
+ .phone>.top{grid-column:2;grid-row:1;padding:26px 36px 24px}
+ .phone>.top h1{font-size:30px}
+ .phone>main{grid-column:2;grid-row:2;padding:26px 36px 48px;gap:14px;max-width:880px;width:100%;box-sizing:border-box}
+ .phone>main>.btn{align-self:flex-start;min-width:300px}
+ .phone>main .stats{grid-template-columns:repeat(3,minmax(0,180px))}
+ .tabs{position:static;transform:none;left:auto;grid-column:1;grid-row:1/3;max-width:none;width:auto;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;padding:28px 14px;border-top:none;border-right:1px solid var(--line)}
+ .tab{flex-direction:row;justify-content:flex-start;gap:12px;font-size:15px;min-height:46px;padding:0 14px;border-radius:10px}
+ .tab[aria-current="page"]{background:var(--accent-soft)}
+ .overlay{border-radius:18px}
+ .overlay main{max-width:680px;margin:0 auto;width:100%;padding:28px 24px}
+ .overlay .top{padding:28px 36px}
+ .toast{bottom:28px}
+}
+</style>
+
+<div class="phone">
+<!-- First sign-in DPDP consent -->
+<section class="overlay" id="consent" hidden>
+<div class="top"><div class="brand"><span class="dbrand" id="cbrand"></span><span class="chip">English · हिंदी</span></div><p>Before you sign in</p><h1>Your data, your choice</h1></div>
+<main style="padding-bottom:20px">
+<div class="card small" style="color:var(--fg);font-size:13px">Under the Digital Personal Data Protection Act, 2023, [ORBIT company], which runs this app for <b class="dname">your dealer</b>, is the data fiduciary. We use your name, mobile, vehicle and policy details only for the purposes you allow.</div>
+<label class="check"><input type="checkbox" id="c-req" checked disabled><span><b>Required:</b> quotes, policy issuance, claims and service. Shared only with the insurer you choose and your dealer.</span></label>
+<label class="check"><input type="checkbox" id="c-msg"><span>Renewal and service reminders on WhatsApp and calls, including an AI caller</span></label>
+<label class="check"><input type="checkbox" id="c-loc"><span>Location for flood alerts and crash SOS</span></label>
+<label class="check"><input type="checkbox" id="c-tel"><span>Driving score to the insurer I choose, for telematics pricing. My dealer never sees it.</span></label>
+<p class="small">Withdraw any consent in Privacy. Grievance officer: [name, email].</p>
+<button class="btn" id="agree">Agree and continue</button>
+</main>
+</section>
+
+<header class="top" id="top"></header>
+<main id="view"></main>
+
+<nav class="tabs" aria-label="App sections">
+<button class="tab" data-v="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+<button class="tab" data-v="quotes"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Quotes</button>
+<button class="tab" data-v="claim"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Claim</button>
+<button class="tab" data-v="car"><svg viewBox="0 0 24 24"><path d="M5 16l2-6h10l2 6M4 16h16v3H4zM7 19v1M17 19v1"/></svg>Vehicle</button>
+<button class="tab" data-v="privacy"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/></svg>Privacy</button>
+</nav>
+<div class="notif" id="notif" role="status" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+const DAYS_LEFT=18; /* sample: days until policy expiry */
+const CONTACTS={
+ dealer:{who:'Dealer CRE',name:'[CRE name], [Dealer] workshop',num:'91XXXXXXXXXX',show:'+91 XXXXX XXXXX',note:'Repair status, parts, pickup time'},
+ surveyor:{who:'Insurer surveyor',name:'[Surveyor name], Insurer A',num:'91YYYYYYYYYY',show:'+91 YYYYY YYYYY',note:'Assessment, approval, deductions'},
+ bot:{who:'Insurer A WhatsApp assistant',name:'Shown until a surveyor is assigned',num:'91ZZZZZZZZZZ',show:'+91 ZZZZZ ZZZZZ',note:'Claim status, documents, escalation'}};
+function chatCard(k){const c=CONTACTS[k];const msg=encodeURIComponent('Claim [#ID], Classic 350 Chrome: ');
+ return `<div class="card"><div class="row"><b>${c.who}</b><span class="small">${c.note}</span></div><span class="small">${c.name}</span>
+ <div class="row" style="align-items:center"><span class="mono" style="user-select:all">${c.show}</span><a class="btn small" style="display:inline-flex;align-items:center;text-decoration:none;background:#1E7A46" href="https://wa.me/${c.num}?text=${msg}" target="_blank" rel="noopener">Open WhatsApp</a></div></div>`}
+const DEALERS=[
+ {id:'lr',name:'Lucknow Royal Riders',short:'Royal Riders',city:'Lucknow',color:'#B3261E',mark:'RR',domain:'royalriders.orbit.in'},
+ {id:'kt',name:'Kanpur Thunder Motors',short:'Thunder Motors',city:'Kanpur',color:'#1F5FBF',mark:'TM',domain:'thundermotors.orbit.in'},
+ {id:'ah',name:'Agra Highway Bikes',short:'Highway Bikes',city:'Agra',color:'#1E7A46',mark:'HB',domain:'highwaybikes.orbit.in'}];
+let DL=DEALERS[0];
+function brandify(h){return h.split('[Dealer name], Lucknow').join(DL.name+', '+DL.city).split('[Dealer name]').join(DL.name).split('[Dealer]').join(DL.short)}
+const PREMIUM=14800; /* sample premium for the loan demo */
+function band(sc){return sc>=750?'Excellent':sc>=700?'Good':sc>=650?'Fair':'Building'}
+function loanOffers(sc,amt,prem){if(sc<650)return[];if(prem){const pb=sc>=750?[['[NBFC A]',9.5,6,0],['[NBFC B]',10.5,9,0.005],['[NBFC C]',0,3,0.02]]:sc>=700?[['[NBFC A]',12,6,0.005],['[NBFC C]',0,3,0.025]]:[['[NBFC C]',16,6,0.02]];
+ return pb.map(([lender,apr,tenure,f])=>{const r=apr/1200,emi=apr?Math.round(amt*r*Math.pow(1+r,tenure)/(Math.pow(1+r,tenure)-1)):Math.round(amt/tenure),fee=Math.round(amt*f);return {lender,apr,tenure,emi,fee,total:emi*tenure-amt+fee}}).sort((a,b)=>a.total-b.total)}const base=sc>=750?[[ '[NBFC A]',11.5,24,0.01],['[NBFC B]',12.75,18,0.015],['[NBFC C]',13.9,12,0.0075]]:sc>=700?[['[NBFC A]',14.5,24,0.015],['[NBFC B]',16,18,0.02]]:[['[NBFC C]',21,12,0.025]];
+ return base.map(([lender,apr,tenure,f])=>{const r=apr/1200,emi=Math.round(amt*r*Math.pow(1+r,tenure)/(Math.pow(1+r,tenure)-1)),fee=Math.round(amt*f);return {lender,apr,tenure,emi,fee,total:emi*tenure-amt+fee}}).sort((a,b)=>a.total-b.total)}
+function rideCheckCard(){if(!S.rc.on)return '';
+ return `<div class="card"><div class="row"><b>Daily ride reminders</b><span class="small">${fmt12(S.rc.morning)} and ${fmt12(S.rc.evening)}</span></div><span class="small">${DL.short} sends a quick reminder to your phone: helmet, fuel and tyre pressure.</span><div class="row" style="gap:8px"><button class="btn ghost small" data-notif="morning" style="flex:1">Preview morning</button><button class="btn ghost small" data-notif="evening" style="flex:1">Preview evening</button></div></div>`}
+function fmt12(t){const [h,m]=t.split(':').map(Number);return ((h%12)||12)+':'+String(m).padStart(2,'0')+(h<12?' AM':' PM')}
+function showNotif(slot){const n=$('#notif');const morning=slot==='morning';
+ n.innerHTML=`<div class="nhead"><span class="nicon" style="background:${DL.color}">${DL.mark}</span><span>${DL.name}</span><span class="ntime">${fmt12(morning?S.rc.morning:S.rc.evening)}</span></div>
+ <b>${morning?'Good morning! Ride safe today':'Heading home? Ride safe this evening'}</b>
+ <span>🪖 Wear your helmet and strap it; pillion too.</span><span>⛽ Check fuel: about [x] km left since your last fill-up.</span><span>🛞 Check tyre pressure when tyres are cold: front [x], rear [x] psi.</span>`;
+ n.hidden=false;n.classList.remove('show');void n.offsetWidth;n.classList.add('show');clearTimeout(showNotif.t);showNotif.t=setTimeout(()=>{n.hidden=true},7000)}
+const RC_ITEMS=[['helmet','Helmet on and strapped','ISI-marked, chin strap clicked; pillion too'],['fuel','Fuel enough for today','Last fill 3 days ago · about [x] km left'],['tyre','Tyre pressure checked','Front [x] psi, rear [x] psi as per your owner\'s manual; check when tyres are cold']];
+const RIDE_SAMPLES=[
+ {d:'Today, 8:42 AM',km:14.2,min:31,avg:28,top:61,limit:'50–60',score:86,brake:1,accel:0,lean:'Moderate',phone:0,over:0,comment:'Smooth ride. One hard brake near Hazratganj crossing; leave a little more gap in traffic.'},
+ {d:'Yesterday, 6:05 PM',km:22.8,min:44,avg:31,top:84,limit:'60',score:68,brake:4,accel:3,lean:'Sharp on 2 bends',phone:1,over:2,comment:'Top speed 84 km/h in a 60 zone on Shaheed Path for about 40 seconds, 4 hard brakes and the phone was handled once while moving. Easing off on that stretch would lift your score above 80.'}];
+const S={rides:RIDE_SAMPLES.slice(),motion:true,rc:{on:true,morning:'08:00',evening:'17:30',slot:'morning',streak:6,done:{}},rec:null,selfq:false,cb:null,cbReason:'Renewal quote',cbTime:'As soon as possible',loan:{step:0,purpose:'Repair bill',amt:50000,consent:false,score:782,pick:null},surveyor:true,view:'home',sort:'road',pick:'A',emi:6,offer:false,consent:{msg:false,loc:false,tel:false}};
+const quotes=[
+ {id:'A',name:'Insurer A',prem:'₹[premium A]',appr:6,doT:1.2,road:5,settled:92,earn:'₹[x]'},
+ {id:'B',name:'Insurer B',prem:'₹[premium B]',appr:14,doT:2.5,road:8,settled:85,earn:'₹[x]'},
+ {id:'C',name:'Insurer C',prem:'₹[premium C]',appr:20,doT:3,road:11,settled:78,earn:'₹[x]'}];
+const $=s=>document.querySelector(s);
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+const BRAND=()=>`<span class="dbrand"><span class="dmark" style="background:${DL.color}">${DL.mark}</span><span><b>${DL.name}</b><small>Powered by ORBIT</small></span></span>`;
+function setTop(sub,title,extra=''){ $('#top').innerHTML=brandify(`<div class="brand">${BRAND()}<span class="chip">Sample data</span></div><p>${sub}</p><h1>${title}</h1>${extra}`)}
+const views={
+home(){const exp=new Date(Date.now()+DAYS_LEFT*864e5).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+ const pct=Math.max(4,Math.round((DAYS_LEFT/365)*100));
+ setTop('Dealer of record: [Dealer name], Lucknow','Classic 350, Chrome',`<div style="display:flex;align-items:center;gap:14px;margin-top:10px;background:#1C2B40;border-radius:12px;padding:12px"><div style="font-family:var(--mono);font-size:40px;line-height:1;color:#FFB27A">${DAYS_LEFT}</div><div style="flex:1"><b>days to renewal</b><div style="font-size:12px;color:var(--head-sub)">Policy expires ${exp}</div><div style="height:6px;border-radius:3px;background:#2E3F57;margin-top:6px"><div style="width:${pct}%;height:6px;border-radius:3px;background:#F07A33"></div></div></div></div>`);
+ return `${rideCheckCard()}
+ <div class="alert"><b>${DAYS_LEFT<=30?'Renew soon:':'Renewal coming up:'}</b> your dealer has sent 3 quotes. Renewing before expiry keeps your 20% NCB.</div>
+ <div class="card"><div class="row"><b>Policy</b><span class="small">Insurer B · expires ${exp}</span></div><div class="stats"><div>IDV<b>₹[x]</b></div><div>NCB<b>20%</b></div><div>Add-ons<b>Zero dep</b></div></div></div>
+ <button class="btn" data-go="quotes">Compare renewal quotes</button>
+ <div class="card"><div class="row"><b>Request a call back</b>${S.cb&&S.cb.st!=='closed'?'<span class="small">Open</span>':''}</div><span class="small">${S.cb&&S.cb.st!=='closed'?`With ${S.cb.owner} · we'll make sure someone calls`:`Your dealer calls you back within 24 hours, or the nearest dealer will.`}</span><button class="btn ghost small" data-go="callback">${S.cb&&S.cb.st!=='closed'?'View status':'Request a call back'}</button></div>
+ <div class="card" style="border:1.5px solid var(--accent)"><div class="row"><b>Insta loan</b><span class="small">From RBI-registered NBFCs</span></div><span class="small">For your insurance premium, a repair bill, accessories or your next bike. See offers in 2 minutes; checking does not affect your credit score.</span><button class="btn small" data-go="loan">Check my loan offers</button></div>
+ <h2>Sky Watch</h2><div class="card"><b>Heavy rain alert, next 48 h</b><span class="small">Gomti riverside wards. Park on higher ground; acting on alerts earns prevention credits.</span></div>
+ <h2>Service</h2><div class="card"><div class="row"><b>Next service</b><span class="mono">in 900 km</span></div><button class="btn ghost small">Book at [Dealer] workshop</button></div>
+ <div class="card"><div class="row"><b>Proposal from dealer</b><span class="small">Valid 7 days</span></div><span class="small">Opened via link · you can continue in the browser or here.</span></div>`},
+quotes(){setTop('Classic 350 claims in Uttar Pradesh, last 12 months','Compare insurers');
+ const key={road:'road',price:'id',settled:'settled'}[S.sort];
+ const list=[...quotes].sort((a,b)=>S.sort==='settled'?b.settled-a.settled:S.sort==='price'?a.id.localeCompare(b.id):a.road-b.road);
+ return `${S.selfq?`<div class="notice"><b>Fresh quotes fetched just now</b> for your Classic 350, IDV and NCB. No need to wait for your dealer; ${DL.short} stays your dealer of record for service and claims.</div>`:`<div class="card"><div class="row"><b>Get quotes yourself</b><span class="small">Instant</span></div><span class="small">See live prices from all insurers without waiting for your dealer to send them.</span><button class="btn small" id="selfq">Get instant quotes</button></div>`}
+ <div class="pills" role="group" aria-label="Sort quotes">${[['road','Fastest back on road'],['price','Lowest price'],['settled','Settlement %']].map(([k,l])=>`<button class="pill" data-sort="${k}" aria-pressed="${S.sort===k}">${l}</button>`).join('')}</div>
+ ${list.map(q=>`<button class="card ${S.pick===q.id?'sel':''}" data-pick="${q.id}" style="text-align:left;font:inherit;color:inherit;cursor:pointer">
+ <div class="row"><b style="font-size:16px">${q.name}</b><span class="mono" style="font-size:17px">${q.prem}</span></div>
+ <div class="stats"><div>Avg approval<b>${q.appr} h</b></div><div>Avg DO time<b>${q.doT} d</b></div><div>Back on road<b>${q.road} d</b></div></div>
+ <div class="row small"><span>Settled ${q.settled}% of claims</span><span>Dealer earns ${q.earn}</span></div></button>`).join('')}
+ <div class="card"><div class="row"><b>Compare on Bima Sugam</b><span class="small">Neutral marketplace</span></div></div>
+ <button class="btn" data-go="pay">Continue with Insurer ${S.pick}</button>
+ <p class="small">You pay the insurer directly. Your dealer is credited for servicing you.</p>`},
+callback(){const C=S.cb;
+ if(!C||C.st==='closed'){setTop('Available while your policy is active','Request a call back');
+  return `${C&&C.st==='closed'?'<div class="notice"><b>Your last call back was closed.</b> Raise a new one any time before your policy expires.</div>':''}
+  <h2>What is it about?</h2><div class="pills" role="group" aria-label="Reason">${['Renewal quote','Claim help','Change in my policy','Something else'].map(r=>`<button class="pill" data-cbr="${r}" aria-pressed="${S.cbReason===r}">${r}</button>`).join('')}</div>
+  <h2>When should we call?</h2><div class="pills" role="group" aria-label="Time">${['As soon as possible','Today evening','Tomorrow morning'].map(r=>`<button class="pill" data-cbt="${r}" aria-pressed="${S.cbTime===r}">${r}</button>`).join('')}</div>
+  <div class="notice">Your request goes to ${DL.name}. If they don't respond within 24 hours, it moves to the nearest ${DL.city==='Lucknow'?'':''}dealer, until someone calls you and the request is closed.</div>
+  <button class="btn" id="cbsend">Request call back</button>`}
+ setTop(`${C.id} · ${C.reason}`,'Call back requested');
+ return `<div class="card timeline">${C.log.map((l,i)=>`<div class="step"><div><div class="dot ${i===C.log.length-1&&C.st!=='closed'?'now':'done'}"></div>${i<C.log.length-1?'<div class="line"></div>':''}</div><div><b>${l[0]}</b><span class="small">${l[1]}</span></div></div>`).join('')}</div>
+ <div class="card"><div class="row"><b>Now with</b><span class="small">${C.st==='closed'?'Closed':`${24-C.age} h left to respond`}</span></div><span>${C.owner}</span></div>
+ ${C.st==='closed'?'':`<div class="row" style="gap:8px"><button class="btn ghost small" id="cbsim" style="flex:1">Prototype: no reply for 24 h</button><button class="btn small" id="cbdone" style="flex:1">They called me, close it</button></div>`}`},
+
+rides(){const r=S.rides[S.rideSel||0];setTop('Measured by your phone\'s motion sensors and GPS','Ride analysis');
+ if(!S.motion)return `<div class="alert"><b>Ride scoring is off.</b> Switch on "Use phone motion sensors" in Privacy to score your rides.</div>`;
+ if(S.rec)return `<div class="card"><b>Recording ride…</b><span class="small">Keep the phone mounted or in your pocket. Don't touch it while riding; the app works in the background.</span><div class="score">${S.rec.t}s</div></div><button class="btn" id="ridestop">End ride</button>`;
+ return `<div class="card"><div class="row"><span class="small">${r.d} · ${r.km} km · ${r.min} min</span><span class="small">Score</span></div><div class="row"><b style="font-size:15px">Ride score</b><div class="score" style="color:${r.score>=80?'var(--good)':r.score>=65?'var(--accent)':'#B3261E'}">${r.score}</div></div></div>
+ <div class="card"><b>AI coach says</b><span class="small" style="font-size:14px;color:var(--fg)">${r.comment}</span></div>
+ <div class="card"><div class="stats"><div>Average speed<b>${r.avg} km/h</b></div><div>Top speed<b>${r.top} km/h</b></div><div>Speed limit<b>${r.limit}</b></div></div>
+ <div class="stats"><div>Hard brakes<b>${r.brake}</b></div><div>Sudden starts<b>${r.accel}</b></div><div>Over limit<b>${r.over}×</b></div></div>
+ <div class="stats"><div>Cornering<b style="font-size:13px">${r.lean}</b></div><div>Phone handled<b>${r.phone}×</b></div><div>Ride reminder<b>${S.rc.on?'On':'Off'}</b></div></div></div>
+ <div class="notice">How it works: GPS gives speed and the road's limit. The accelerometer and gyroscope detect hard braking, sudden starts, cornering lean and the phone being picked up while moving.</div>
+ <h2>Recent rides</h2>${S.rides.map((x,i)=>`<button class="card ${i===(S.rideSel||0)?'sel':''}" data-ride="${i}" style="text-align:left;font:inherit;color:inherit;cursor:pointer"><div class="row"><b>${x.d}</b><span class="mono">${x.score}</span></div><span class="small">${x.km} km · top ${x.top} km/h</span></button>`).join('')}
+ <button class="btn" id="ridestart">Start a ride (prototype)</button>`},
+
+loan(){const L=S.loan;
+ if(L.step===0){setTop('Insta loan · step 1 of 3','What do you need it for?');
+  return `<div class="pills" role="group" aria-label="Purpose">${['Insurance premium','Repair bill','Accessories and gear','Service plan','Next bike'].map(x=>`<button class="pill" data-purpose="${x}" aria-pressed="${L.purpose===x}">${x}</button>`).join('')}</div>
+  ${L.purpose==='Insurance premium'?`<div class="card"><div class="row"><b>Premium to finance</b><b class="mono">₹${PREMIUM.toLocaleString('en-IN')}</b></div><span class="small">Insurer ${S.pick} · 1-year renewal, Classic 350 (sample figure). Pay it back in 3 to 9 monthly instalments.</span></div>`:`<h2>How much?</h2><div class="pills" role="group" aria-label="Amount">${[25000,50000,100000,200000].map(a=>`<button class="pill" data-amt="${a}" aria-pressed="${L.amt===a}">₹${a.toLocaleString('en-IN')}</button>`).join('')}</div>`}
+  <div class="notice">Loans come from RBI-registered NBFC partners of ${DL.short}. Taking a loan is never required to buy insurance or service.</div>
+  <button class="btn" data-lstep="1">Continue</button>`}
+ if(L.step===1){setTop('Insta loan · step 2 of 3','Check your eligibility');
+  return `<div class="card"><b>We need your permission</b><span class="small">To show real offers, we fetch your credit score from a credit bureau (such as CIBIL) using your PAN. This is a <b>soft check</b> and does not lower your score.</span></div>
+  <div class="field"><label for="pan">PAN<input type="text" id="pan" placeholder="ABCDE1234F" value="ABCDE1234F"></label></div>
+  <label class="check"><input type="checkbox" id="bureau" ${L.consent?'checked':''}><span>I agree to share my PAN and mobile with ${DL.short}'s lending partners to fetch my credit report and loan offers. Valid for 30 days; I can withdraw it in Privacy.</span></label>
+  <label class="toggle">Prototype: simulate credit score<select id="simscore" style="height:36px">${[[782,'782 · Excellent'],[724,'724 · Good'],[668,'668 · Fair'],[590,'590 · Building']].map(x=>`<option value="${x[0]}" ${L.score===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></label>
+  <div class="row" style="gap:8px"><button class="btn ghost" data-lstep="0" style="flex:1">Back</button><button class="btn" id="fetch" style="flex:2">Fetch my offers</button></div>`}
+ if(L.step===2){const prem=L.purpose==='Insurance premium';if(prem)L.amt=PREMIUM;const offers=loanOffers(L.score,L.amt,prem);setTop(`Score ${L.score} · ${band(L.score)}`,'Your loan offers',`<div style="margin-top:8px;height:8px;border-radius:4px;background:#2E3F57"><div style="height:8px;border-radius:4px;width:${Math.round((L.score-300)/600*100)}%;background:${L.score>=750?'#5CC48A':L.score>=700?'#7FAEF0':L.score>=650?'#F0A060':'#E06C5A'}"></div></div><div style="font-size:11px;color:var(--head-sub);margin-top:4px">300 to 900 · soft check, your score is unchanged</div>`);
+  if(!offers.length)return `<div class="alert"><b>No instant offers right now.</b> Scores under 650 often qualify after a few months of on-time payments. We can remind you in 90 days.</div><button class="btn ghost" data-lstep="1">Try another score (prototype)</button>`;
+  return `<p class="small">For ₹${L.amt.toLocaleString('en-IN')} · ${L.purpose}. Sorted by lowest total cost.</p>
+  ${offers.map((o,i)=>`<button class="card ${L.pick===i?'sel':''}" data-offer="${i}" style="text-align:left;font:inherit;color:inherit;cursor:pointer">
+  <div class="row"><b style="font-size:16px">${o.lender}</b><span class="small">RBI-registered NBFC</span></div>
+  <div class="stats"><div>EMI<b>₹${o.emi.toLocaleString('en-IN')}</b></div><div>Interest (APR)<b>${o.apr?o.apr+'%':'≈'+(o.fee/L.amt*12/((o.tenure+1)/2)*100).toFixed(1)+'%'}</b>${o.apr?'':'<span class="small">no interest, fee only</span>'}</div><div>Tenure<b>${o.tenure} mo</b></div></div>
+  <div class="row small"><span>Processing fee ₹${o.fee.toLocaleString('en-IN')}</span><span>Total cost ₹${o.total.toLocaleString('en-IN')}</span></div></button>`).join('')}
+  ${L.pick!=null?`<div class="card"><b>Key Fact Statement · ${offers[L.pick].lender}</b><span class="small">Loan ₹${L.amt.toLocaleString('en-IN')} · APR ${offers[L.pick].apr}% all-inclusive · ${offers[L.pick].tenure} EMIs of ₹${offers[L.pick].emi.toLocaleString('en-IN')} · processing fee ₹${offers[L.pick].fee.toLocaleString('en-IN')} · no prepayment charge after 6 months · 3-day cooling-off: cancel with no penalty, paying only interest for days used · ${prem?`the lender pays your premium directly to Insurer ${S.pick}; the policy is in your name from day one; if the policy is cancelled, any refund first closes the loan`:'money goes straight to your bank account from the lender'} · lender's grievance officer: [name, email]</span></div>
+  <button class="btn" id="takeloan">${prem?`Pay premium with ${offers[L.pick].lender}`:`Continue to ${offers[L.pick].lender} for KYC and e-sign`}</button>`:'<p class="small">Tap an offer to see its Key Fact Statement.</p>'}
+  <p class="small">${DL.short} may earn a referral fee from the lender: ₹[x], shown before you sign.</p>
+  <div class="row" style="gap:8px"><button class="btn ghost small" data-lstep="0" style="flex:1">Change amount</button><button class="btn ghost small" data-lstep="1" style="flex:1">Try another score (prototype)</button></div>`}},
+
+pay(){setTop(`Insurer ${S.pick} · 1 year`,'Pay securely');
+ const opts=[[3,'No-cost'],[6,'₹[x]/mo'],[9,'₹[x]/mo']];
+ return `<div class="card"><div class="row"><span>Premium incl. GST</span><span class="mono">₹[premium]</span></div>
+ <div class="row"><span>RSA plan (ORBIT service)</span><span class="mono">₹[plan]</span></div>
+ ${S.offer?`<div class="row" style="color:var(--good)"><span>RIDE10 on RSA plan</span><span class="mono">− ₹[x]</span></div>`:''}
+ <div class="row" style="border-top:1px solid var(--line);padding-top:8px"><b>Total</b><b class="mono">₹[total]</b></div></div>
+ <div class="field"><label for="code">Offer code<input type="text" id="code" value="${S.offer?'RIDE10':''}" placeholder="Enter code"></label><button class="btn small" id="apply">${S.offer?'Applied':'Apply'}</button></div>
+ <p class="small">Codes discount ORBIT service plans. Premium discounts come only from the insurer's filed pricing or your card issuer.</p>
+ <h2>Card EMI</h2><div class="emi">${opts.map(([m,l])=>`<button data-emi="${m}" aria-pressed="${S.emi===m}">${m} months<br><b>${l}</b></button>`).join('')}</div>
+ <div class="pills"><button class="pill" aria-pressed="false">UPI</button><button class="pill" aria-pressed="false">Card</button><button class="pill" aria-pressed="false">Net banking</button></div>
+ <div class="card"><div class="row"><b>Or pay at ${DL.short}</b><span class="small">Cash, UPI or card at the counter</span></div><span class="small">${DL.short} collects the premium, gives you a receipt and pays Insurer ${S.pick} for you. Your policy is issued once the insurer receives it.</span><button class="btn ghost small" data-toast2="Request sent: ${DL.short} will confirm your payment slot">Pay at dealership</button></div>
+ <button class="btn" id="paybtn">Pay via ${S.emi}-month EMI</button>
+ <p class="small">Premium goes straight to Insurer ${S.pick}'s payment gateway.</p>
+ <p class="small">Prefer to spread the premium? <button class="pill" data-go="loan" data-prem="1" aria-pressed="false">Pay premium with insta loan</button> Optional; card EMI and UPI work too.</p>`},
+claim(){setTop('Claim [#ID] · Insurer A · cashless','Repair in progress',`<div class="stats" style="margin-top:8px"><div style="color:var(--head-sub)">Expected back<b style="color:#FFFFFF">Day 5</b></div><div style="color:var(--head-sub)">Your bike's average<b style="color:#FFFFFF">5 days</b></div><div style="color:var(--head-sub)">Guarantee after<b style="color:#FFFFFF">Day 7</b></div></div>`);
+ const st=[['done','Photos and AI estimate','Matched to your digital twin, Day 1'],['done','Insurer approval','Approved in 6 h'],['now','Repair at [Dealer] workshop','Parts in stock'],['','Final bill','Shared with you before release'],['','Delivery order from insurer','Insurer A average: 1.2 days'],['','Ready for pickup','']];
+ return `<div class="card timeline">${st.map((s,i)=>`<div class="step"><div><div class="dot ${s[0]}"></div>${i<st.length-1?'<div class="line"></div>':''}</div><div><b>${s[1]}</b><span class="small">${s[2]}</span></div></div>`).join('')}</div>
+ <div class="card"><div class="row"><b>Working on your bike now</b><span class="small">Updated 10 min ago</span></div><span class="small">[Mechanic name] at [Dealer] workshop is fitting the fuel tank. Next: final bill for your approval.</span></div>
+ <h2>What these words mean</h2>
+ <div class="card"><b>Delivery order (DO)</b><span class="small">The insurer's go-ahead that lets the workshop release your bike. Insurer A usually issues it in about a day.</span></div>
+ <div class="card"><b>Deductible</b><span class="small">The fixed part of the bill you pay yourself, usually ₹[x] for a two-wheeler.</span></div>
+ <div class="card"><b>Depreciation</b><span class="small">A cut on worn parts like tyres and plastic. Your zero-dep add-on means you don't pay it.</span></div>
+ <h2>Talk on WhatsApp</h2>
+ ${chatCard('dealer')}${chatCard(S.surveyor?'surveyor':'bot')}
+ <label class="toggle">Surveyor assigned (prototype switch)<input type="checkbox" id="sv" ${S.surveyor?'checked':''}></label>`},
+car(){setTop('Connected via OEM service','Your vehicle');
+ return `<div class="card" style="border:1.5px solid var(--accent)"><div class="row"><b>My rides · phone sensors</b><span class="small">Last ride score ${S.rides[0].score}</span></div><span class="small">${S.rides[0].comment}</span><button class="btn small" data-go="rides">See ride analysis</button></div>
+ <div class="card"><div class="row"><div><span class="small">Drive score, 90 days</span><div class="score">82</div></div><div style="text-align:right"><span class="small">Estimated OD saving</span><div class="mono" style="color:var(--good)">₹[x] at renewal</div></div></div></div>
+ <div class="alert"><b>Speed alert:</b> 112 km/h in an 80 zone, 6:12 pm. Sent to you only.</div>
+ <div class="card"><b>Crash detection · armed</b><span class="small">An impact signal alerts family, 112 and your dealer, and starts the claim with time and location.</span><button class="btn ghost small" id="sos">Test SOS flow</button></div>
+ <h2>Telematics plan</h2>
+ <div class="notice"><b>Insurer-only data.</b> Your score and kilometres go encrypted to the insurer you choose. Your dealer cannot see them.</div>
+ <label class="toggle">Share drive score with Insurer A<input type="checkbox" id="t-tel" ${S.consent.tel?'checked':''}></label>
+ <label class="toggle">I ride at night for work (night trips won't lower my score)<input type="checkbox"></label>
+ <label class="toggle">Speed alerts to me<input type="checkbox" checked></label>
+ <h2>My policies</h2><div class="card"><div class="row"><b>POL-24-001842 · Insurer A</b><span class="small">Active</span></div><span class="small">Issued by ${DL.name} at delivery · saved here automatically when you installed the app · PDF and history kept for 7 years</span><div class="row" style="gap:8px"><button class="btn ghost small" data-toast2="Policy PDF opened" style="flex:1">View PDF</button><button class="btn ghost small" data-toast2="Policy PDF shared" style="flex:1">Share</button></div></div>
+ <div class="card"><div class="row"><b>POL-21-000412 · Insurer C</b><span class="small">Expired</span></div><span class="small">Previous policy · still available until 2028</span></div>
+ <h2>Bike Vault</h2><div class="card"><div class="row"><span>Policy, RC, PUC</span><span class="small">3 documents</span></div><div class="row"><span>Service history</span><span class="small">7 visits</span></div></div>`},
+privacy(){setTop('Digital Personal Data Protection Act, 2023','Privacy');
+ return `<h2>Daily ride reminders</h2>
+ <label class="toggle">Morning reminder<input type="time" id="rcm" value="${S.rc.morning}" style="width:auto;height:36px"></label>
+ <label class="toggle">Evening reminder<input type="time" id="rce" value="${S.rc.evening}" style="width:auto;height:36px"></label>
+ <label class="toggle">Morning and evening ride reminders<input type="checkbox" id="rcon" ${S.rc.on?'checked':''}></label>
+ <label class="toggle">Use phone motion sensors to score my rides<input type="checkbox" id="motion" ${S.motion?'checked':''}></label>
+ <p class="small">Ride data stays on your phone and with ${DL.short} for service tips. It goes to an insurer only if you switch on telematics sharing.</p>
+ <h2>Messages</h2>
+ <label class="toggle">Reminders on WhatsApp and calls<input type="checkbox" data-c="msg" ${S.consent.msg?'checked':''}></label>
+ <label class="toggle">Location for alerts and SOS<input type="checkbox" data-c="loc" ${S.consent.loc?'checked':''}></label>
+ <label class="toggle">Drive score to my chosen insurer<input type="checkbox" data-c="tel" ${S.consent.tel?'checked':''}></label>
+ <div class="card"><div class="row"><b>Dealer of record</b><button class="btn ghost small">Change</button></div><span class="small">[Dealer name], Lucknow</span><span class="small">Each dealer gets this app under its own name. Prototype: pick a dealer to preview.</span><div class="pills">${DEALERS.map(d=>`<button class="pill" data-dealer="${d.id}" aria-pressed="${DL.id===d.id}">${d.name}</button>`).join('')}</div></div>
+ <p class="small">Every change is logged with time and notice version. Grievance officer: [name, email].</p>
+ <button class="btn ghost" id="reset">Show first sign-in again</button>`}};
+function render(){if(S.view!=='loan'&&S.loan.step===2&&S.loan.done){S.loan.step=0;S.loan.done=false}document.documentElement.style.setProperty('--accent',DL.color);$('#cbrand').innerHTML=BRAND();document.querySelectorAll('.dname').forEach(e=>e.textContent=DL.name);$('#view').innerHTML=brandify(views[S.view]());document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-current',t.dataset.v===S.view||(S.view==='pay'&&t.dataset.v==='quotes')||((S.view==='loan'||S.view==='callback')&&t.dataset.v==='home')||(S.view==='rides'&&t.dataset.v==='car')?'page':'false'));window.scrollTo(0,0)}
+function go(v){S.view=v;render()}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.toast2){toast(t.dataset.toast2);return}
+ if(t.dataset.notif){showNotif(t.dataset.notif);return}
+ if(t.dataset.ride){S.rideSel=+t.dataset.ride;return render()}
+ if(t.id==='ridestart'){S.rec={t:0};render();S.recT=setInterval(()=>{S.rec.t++;const el=document.querySelector('#view .score');if(el)el.textContent=S.rec.t+'s'},1000);return}
+ if(t.id==='ridestop'){clearInterval(S.recT);const n={d:'Just now',km:+(3+Math.random()*8).toFixed(1),min:Math.max(1,Math.round(S.rec.t/60)),avg:30,top:58,limit:'60',score:91,brake:0,accel:1,lean:'Gentle',phone:0,over:0,comment:'Clean ride: within the speed limit throughout and no hard braking. One quick start at a signal; roll on the throttle gently.'};S.rides.unshift(n);S.rideSel=0;S.rec=null;render();toast('Ride scored: 91');return}
+ if(t.id==='selfq'){S.selfq=true;render();toast('Live quotes fetched from 3 insurers');return}
+ if(t.dataset.cbr){S.cbReason=t.dataset.cbr;return render()}
+ if(t.dataset.cbt){S.cbTime=t.dataset.cbt;return render()}
+ if(t.id==='cbsend'){const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});S.cb={id:'CB-'+(312+Math.floor(Math.random()*80)),reason:S.cbReason,owner:DL.name,age:0,st:'open',tried:[DL.name],log:[['Request raised',S.cbTime+' · '+now],['Sent to '+DL.name,'Your dealer of record · 24 h to respond']]};render();toast('Call back requested');return}
+ if(t.id==='cbsim'){const C=S.cb;const next=DEALERS.map(d=>d.name).find(n=>!C.tried.includes(n));if(next){C.tried.push(next);C.log.push(['No response in 24 h',C.owner+' did not call'],['Moved to nearest dealer: '+next,'24 h to respond']);C.owner=next;C.age=0}else{C.log.push(['Escalated to ORBIT support','All nearby dealers missed the window'])}render();return}
+ if(t.id==='cbdone'){S.cb.st='closed';S.cb.log.push(['Closed','Call completed by '+S.cb.owner]);render();toast('Call back closed');return}
+ if(t.dataset.go==='loan'){S.loan.step=0;S.loan.pick=null;if(t.dataset.prem)S.loan.purpose='Insurance premium'}
+ if(t.dataset.purpose){S.loan.purpose=t.dataset.purpose;return render()}
+ if(t.dataset.amt){S.loan.amt=+t.dataset.amt;return render()}
+ if(t.dataset.lstep){S.loan.step=+t.dataset.lstep;S.loan.pick=null;return render()}
+ if(t.dataset.offer){S.loan.pick=+t.dataset.offer;return render()}
+ if(t.id==='fetch'){S.loan.consent=$('#bureau').checked;S.loan.score=+$('#simscore').value;if(!S.loan.consent){toast('Please give consent to fetch your credit score');return}S.loan.step=2;S.loan.pick=null;render();toast('Soft check done. Your score is unchanged.');return}
+ if(t.id==='takeloan'){S.loan.done=true;toast(S.loan.purpose==='Insurance premium'?'Lender will pay the premium to Insurer '+S.pick+' after e-sign (prototype)':'Opening lender for video KYC and e-sign (prototype)');return}
+ if(t.dataset.dealer){DL=DEALERS.find(d=>d.id===t.dataset.dealer);render();toast('Now branded as '+DL.name);return}
+ if(t.dataset.v)return go(t.dataset.v);
+ if(t.dataset.go)return go(t.dataset.go);
+ if(t.dataset.sort){S.sort=t.dataset.sort;return render()}
+ if(t.dataset.pick){S.pick=t.dataset.pick;return render()}
+ if(t.dataset.emi){S.emi=+t.dataset.emi;return render()}
+ if(t.id==='apply'){const v=($('#code').value||'').trim().toUpperCase();if(v==='RIDE10'){S.offer=true;render();toast('RIDE10 applied to your RSA plan')}else toast('That code is not valid. Try RIDE10.');return}
+ if(t.id==='paybtn'){toast(`Opening Insurer ${S.pick}'s payment gateway (prototype)`);return}
+ if(t.id==='sos'){toast('Test: alerts would go to family, 112 and your dealer');return}
+ if(t.id==='reset'){store('orbit-consent','');$('#consent').hidden=false;return}
+ if(t.id==='agree'){S.consent={msg:$('#c-msg').checked,loc:$('#c-loc').checked,tel:$('#c-tel').checked};store('orbit-consent',JSON.stringify(S.consent));$('#consent').hidden=true;render();toast('Your choices are saved');setTimeout(()=>showNotif('morning'),900);return}
+});
+document.addEventListener('change',e=>{const rc=e.target.dataset&&e.target.dataset.rc;if(rc){S.rc.done[rc]=e.target.checked;if(RC_ITEMS.every(i=>S.rc.done[i[0]])){S.rc.streak++;toast('All set! Streak '+S.rc.streak+' days')}render();return}
+ if(e.target.id==='rcm'){S.rc.morning=e.target.value;toast('Morning reminder set for '+e.target.value);return}
+ if(e.target.id==='rce'){S.rc.evening=e.target.value;toast('Evening reminder set for '+e.target.value);return}
+ if(e.target.id==='rcon'){S.rc.on=e.target.checked;toast(e.target.checked?'Ride-ready reminders on':'Reminders off');return}
+ if(e.target.id==='motion'){S.motion=e.target.checked;toast(e.target.checked?'Ride scoring on':'Ride scoring off');return}
+if(e.target.id==='sv'){S.surveyor=e.target.checked;render();return}const c=e.target.dataset.c;if(c){S.consent[c]=e.target.checked;store('orbit-consent',JSON.stringify(S.consent));toast('Consent updated')}if(e.target.id==='t-tel'){S.consent.tel=e.target.checked;store('orbit-consent',JSON.stringify(S.consent));toast(e.target.checked?'Sharing score with Insurer A':'Score sharing off')}});
+const saved=store('orbit-consent');
+/* Prototype: always open on the DPDP consent screen */
+$('#consent').hidden=false;
+render();
+</script>
+
+<script>document.addEventListener("click",e=>{const n=e.target.closest("#notif");if(n)n.hidden=true});</script>
+
+</body>
+</html>

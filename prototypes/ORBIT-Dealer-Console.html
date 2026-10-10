@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ORBIT Dealer Console</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: side menu + work area; menu stacks above content on phones */
+:root{--bg:#EEF1F4;--surface:#FFFFFF;--fg:#0E1A2B;--muted:#4A5568;--line:#D5DBE3;--accent:#C2500F;--accent-soft:#FBE6D8;--blue:#1F5FBF;--blue-soft:#E3ECF9;--good:#1E7A46;--good-soft:#E1F2E8;--warn:#9A4A0B;--side:#0E1A2B;--side-fg:#E8EDF4;--side-muted:#9AA6B6;--side-hi:#1C2B40;
+--display:'Archivo',system-ui,sans-serif;--body:'IBM Plex Sans','Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--good-soft:#14301F;--warn:#F0A060;--side:#060B14;--side-hi:#141E2E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0B1220;--surface:#141E2E;--fg:#E8EDF4;--muted:#A3AEBE;--line:#2A3648;--accent:#F07A33;--accent-soft:#3A2414;--blue:#7FAEF0;--blue-soft:#18263C;--good:#5CC48A;--good-soft:#14301F;--warn:#F0A060;--side:#060B14;--side-hi:#141E2E;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.shell{display:flex;flex-wrap:wrap;min-height:100vh}
+nav.side{flex:1 1 230px;max-width:100%;background:var(--side);color:var(--side-fg);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+@media (min-width:860px){nav.side{flex:0 0 240px}}
+.logo{font-family:var(--display);font-weight:800;letter-spacing:.08em;font-size:21px;padding:0 10px}
+.dealer{font-size:12px;color:var(--side-muted);padding:0 10px 12px}
+.grp{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--side-muted);padding:12px 10px 4px}
+.nav{font:inherit;text-align:left;background:none;border:none;color:var(--side-fg);border-radius:8px;min-height:40px;padding:0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.nav[aria-current="page"]{background:var(--side-hi);color:#FFFFFF;font-weight:600}
+.nav .n{font-family:var(--mono);font-size:12px;color:var(--side-muted)}
+.work{flex:999 1 560px;min-width:0;padding-block:24px 48px;padding-inline:clamp(16px,3vw,32px);display:flex;flex-direction:column;gap:18px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:28px;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;font-size:14px}
+.status{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;border-radius:99px;padding:3px 10px;background:var(--good-soft);color:var(--good)}
+.tag.w{background:var(--accent-soft);color:var(--warn)}
+.tag.b{background:var(--blue-soft);color:var(--blue)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi b{display:block;font-family:var(--mono);font-weight:500;font-size:28px;font-variant-numeric:tabular-nums}
+.kpi small{font-size:12px;color:var(--muted)}
+.kpi.w{border-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{font-family:var(--display);font-size:19px;margin:0}
+.cols{display:flex;flex-wrap:wrap;gap:18px}
+.cols>*{flex:1 1 320px;min-width:0}
+.list{display:flex;flex-direction:column}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.item:first-child{border-top:none}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-weight:600;border:none;border-radius:10px;min-height:40px;padding:0 14px;cursor:pointer;background:var(--fg);color:var(--bg)}
+.btn.a{background:var(--accent);color:#FFFFFF}
+.btn.g{background:transparent;color:var(--fg);border:1.5px solid var(--fg)}
+.btn:focus-visible,.nav:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.bands{display:flex;border-radius:10px;overflow:hidden;font-size:13px;font-weight:600;text-align:center}
+.bands div{padding:12px 6px}
+.b1{background:#1E7A46;color:#FFFFFF}.b2{background:#E8A33D;color:#0E1A2B}.b3{background:#B8480E;color:#FFFFFF}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+input[type=text],select{font:inherit;font-size:15px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 12px}
+.detect{background:var(--blue-soft);border-radius:10px;padding:12px;font-size:14px}
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.pipe div{background:var(--bg);border-radius:10px;padding:10px;font-size:12px;color:var(--muted)}
+.pipe b{display:block;font-family:var(--mono);font-size:22px;color:var(--fg);font-weight:500}
+.pipe .hot{background:var(--accent-soft);color:var(--warn)}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{flex:1 1 110px;text-align:center;font-size:12px;padding:8px;border-radius:8px;border:1px solid var(--line)}
+.steps .d{background:var(--blue);color:#FFFFFF;border-color:var(--blue)}
+.steps .c{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 12px;min-height:36px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.wa{background:#E5DDD5;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#0E1A2B}
+.wa .msg{background:#FFFFFF;border-radius:10px;padding:10px;font-size:13px}
+.wa .q{border:1px solid #D5DBE3;border-radius:8px;padding:6px 8px;margin-top:6px}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--fg);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;max-width:360px}
+.note{font-size:12px;color:var(--muted)}
+/* Shopify-style dealer storefront */
+.sbrand{display:flex;align-items:center;gap:10px;padding:0 10px}
+.sbrand b{font-family:var(--display);font-size:16px;line-height:1.2;display:block}
+.sbrand small{display:block;font-size:11px;color:var(--side-muted)}
+.dmark{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:14px;color:#FFFFFF;flex:none}
+.dswitch{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--side-muted);padding:10px 10px 4px}
+.dswitch select{height:36px;font-size:13px;background:var(--side-hi);color:var(--side-fg);border-color:#2E3F57}
+.store{display:flex;flex-wrap:wrap;gap:18px}.store>.panel{flex:1 1 360px;min-width:0}
+.phone{width:240px;max-width:100%;border:8px solid var(--side);border-radius:28px;overflow:hidden;background:var(--bg);align-self:center}
+.phone .ph{padding:12px;color:#FFFFFF;display:flex;align-items:center;gap:8px}
+.phone .ph b{font-size:13px;display:block}.phone .ph small{font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
+.phone .pb{padding:10px;display:flex;flex-direction:column;gap:6px;font-size:11px}
+.phone .pb div{background:var(--surface);border-radius:8px;padding:8px}
+.phone .pbtn{color:#FFFFFF;border-radius:8px;padding:8px;text-align:center;font-weight:600}
+.swrow{display:flex;gap:8px;flex-wrap:wrap}
+.swb{width:36px;height:36px;border-radius:10px;border:3px solid transparent;cursor:pointer}
+.swb[aria-pressed="true"]{border-color:var(--fg)}
+.applist{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.appitem{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.appitem small{display:block;color:var(--muted);font-size:12px}
+.appitem input{width:20px;height:20px;accent-color:var(--accent)}
+/* Focus mode, north star, pilot lab */
+.shell.core .xtra{display:none}
+.modebox{display:flex;flex-direction:column;gap:6px;padding:4px 10px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--side-muted)}
+.modebox .seg{border-color:#2E3F57;text-transform:none;letter-spacing:0}
+.modebox .seg button{background:transparent;color:var(--side-fg);flex:1}
+.modebox .seg button[aria-pressed="true"]{background:var(--accent);color:#FFFFFF}
+.modenote{font-size:12px;color:var(--side-muted);padding:10px;margin:8px 0 0;line-height:1.4}
+.north{background:var(--side);color:#FFFFFF;border-radius:14px;padding:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+.north .big{font-family:var(--mono);font-size:44px;line-height:1;color:#FFB27A}
+.north small{color:var(--side-muted);font-size:13px;display:block}
+.north .bars{display:flex;gap:6px;align-items:flex-end;height:48px}
+.north .bars i{width:16px;background:#5B7A9E;border-radius:3px 3px 0 0;display:block}
+.north .bars i:last-child{background:#FFB27A}
+.owner{font-size:12px;border-radius:99px;padding:3px 10px;white-space:nowrap;background:var(--blue-soft);color:var(--blue)}
+.owner.late{background:var(--accent-soft);color:var(--warn)}
+.persona{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.persona div{border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.persona b{font-size:14px}
+.persona small{color:var(--muted)}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+.chk input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent);flex:none}
+.chk small{display:block;color:var(--muted);font-size:12px}
+.meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:8px;background:var(--good)}
+.loopcard{border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;display:flex;flex-direction:column;gap:6px}
+.loopcard .kind{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rolebar{align-self:flex-start;flex-wrap:wrap}
+.rolebar button{min-height:40px;padding:0 16px;font-size:14px}
+/* CRM and agent */
+[hidden]{display:none!important}
+.path{display:flex;gap:4px;overflow-x:auto}
+.path button{font:inherit;font-size:13px;flex:1 1 0;min-width:110px;min-height:40px;border:none;cursor:pointer;background:var(--line);color:var(--fg);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%)}
+.path button.done{background:var(--blue-soft);color:var(--blue)}
+.path button.cur{background:var(--accent);color:#FFFFFF;font-weight:600}
+.hl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.hl div{font-size:12px;color:var(--muted)}
+.hl b{display:block;font-size:15px;color:var(--fg);font-weight:600}
+.rec{display:flex;flex-wrap:wrap;gap:16px}.rec>*{flex:1 1 320px;min-width:0}
+.tl{display:flex;flex-direction:column;gap:10px}
+.tl div{border-left:3px solid var(--line);padding-left:10px;font-size:14px}
+.tl small{display:block;color:var(--muted);font-size:12px}
+.sc{font-family:var(--mono);font-size:12px;border-radius:99px;padding:3px 9px;white-space:nowrap}
+.sc.hi{background:var(--good-soft);color:var(--good)}.sc.mid{background:var(--blue-soft);color:var(--blue)}.sc.lo{background:var(--accent-soft);color:var(--warn)}
+.rowlink{font:inherit;background:none;border:none;color:var(--blue);cursor:pointer;padding:0;text-align:left;font-weight:600}
+.agentbox{display:flex;gap:8px;flex-wrap:wrap}
+.agentbox input{flex:1 1 300px}
+.plan{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.step .ic{width:24px;height:24px;border-radius:99px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);background:var(--bg)}
+.step.ok .ic{background:var(--good);color:#FFFFFF}
+.step.wait .ic{background:var(--accent);color:#FFFFFF}
+.step small{display:block;color:var(--muted);font-size:12px}
+.guard{border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:10px;font-size:13px}
+/* Lightning-style CRM workspace */
+.crmws{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;display:flex;flex-direction:column}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ws-global{display:flex;align-items:center;gap:12px;padding:8px clamp(12px,2vw,20px);background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.ws-waffle{width:40px;height:40px;display:grid;grid-template-columns:repeat(3,6px);gap:4px;align-content:center;justify-content:center;background:none;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.ws-waffle span{width:6px;height:6px;border-radius:2px;background:var(--muted)}
+.ws-app{font-family:var(--display);font-size:18px;border-left:4px solid var(--ac);padding-left:8px}
+.ws-search{flex:1 1 220px;max-width:520px}
+.ws-search input{width:100%;height:38px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:inherit;padding:0 14px}
+.ws-agentbtn{font:inherit;font-weight:600;border:none;border-radius:99px;min-height:38px;padding:0 14px;cursor:pointer;background:var(--blue);color:#FFFFFF}
+.ws-agentbtn[aria-pressed="true"]{box-shadow:0 0 0 3px var(--blue-soft)}
+.ws-close{font:inherit;background:none;border:1px solid var(--line);color:var(--fg);border-radius:8px;min-height:38px;padding:0 12px;cursor:pointer}
+.ws-tabs{display:flex;gap:2px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 clamp(12px,2vw,20px);overflow-x:auto}
+.ws-tab{font:inherit;font-size:14px;background:none;border:none;border-bottom:3px solid transparent;padding:10px 14px;min-height:44px;cursor:pointer;color:var(--fg);white-space:nowrap}
+.ws-tab[aria-current="page"]{border-bottom-color:var(--blue);font-weight:600}
+.ws-body{display:flex;flex:1;min-height:0;align-items:flex-start}
+.ws-page{flex:1;min-width:0;padding:16px clamp(12px,2vw,20px) 48px;display:flex;flex-direction:column;gap:12px}
+.ws-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ws-card h2{font-size:16px;margin:0}
+.ws-grid{display:flex;flex-wrap:wrap;gap:12px}.ws-main{flex:3 1 420px;min-width:0;display:flex;flex-direction:column;gap:12px}.ws-side{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.ws-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.ws-kpis span,.ws-hlf div,.ws-det div{font-size:12px;color:var(--muted)}
+.ws-kpis b{display:block;font-family:var(--mono);font-size:22px;font-weight:500;color:var(--fg)}
+.ws-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.ws-item small{display:block;color:var(--muted);font-size:12px}
+.ws-ai{background:var(--blue-soft);border-color:var(--blue-soft)}
+.ws-lhead,.ws-hltop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ws-lhead>div:first-child,.ws-hltop>div:nth-child(2){display:flex;align-items:center;gap:10px}
+.ws-hltop>div:nth-child(2){flex:1}
+.ws-lhead small,.ws-hltop small{color:var(--muted);font-size:12px;display:block}
+.ws-obj{width:36px;height:36px;border-radius:8px;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.ws-lact,.ws-hlbtn{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:var(--surface);color:var(--fg);border:none;padding:0 12px;min-height:36px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#FFFFFF}
+.ws-kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:10px;overflow-x:auto}
+.ws-col{background:var(--bg);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px;min-height:140px}
+.ws-col h3{margin:0;font-size:13px;display:flex;justify-content:space-between;color:var(--muted)}
+.ws-kcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:4px}
+.ws-kcard small{color:var(--muted);font-size:12px}
+.ws-krow{display:flex;justify-content:space-between;align-items:center}
+.ws-mini{font:inherit;font-size:12px;background:none;border:none;color:var(--blue);cursor:pointer;padding:4px}
+.ws-crumb{font:inherit;background:none;border:none;color:var(--blue);cursor:pointer;align-self:flex-start;padding:4px 0}
+.ws-hl h2{font-size:22px}
+.ws-hlf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.ws-hlf b,.ws-det b{display:block;font-size:14px;color:var(--fg)}
+.ws-det{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.ws-pathfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ws-agent{flex:0 0 340px;max-width:100%;align-self:stretch;background:var(--surface);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;max-height:100vh;overflow-y:auto}
+@media (max-width:820px){.ws-body{flex-direction:column}.ws-agent{flex:none;width:100%;border-left:none;border-top:1px solid var(--line);position:static;max-height:none}}
+.ws-agh{display:flex;justify-content:space-between;align-items:center}
+.ws-chat{display:flex;flex-direction:column;gap:8px}
+.msg{border-radius:10px;padding:8px 10px;font-size:14px;max-width:90%}
+.msg.me{align-self:flex-end;background:var(--blue);color:#FFFFFF}
+.msg.bot{align-self:flex-start;background:var(--bg)}
+.ws-agbtns{display:flex;gap:8px;flex-wrap:wrap}
+.ws-agin{display:flex;gap:8px;margin-top:auto}
+.ws-agin input{flex:1;min-width:0}
+.ws-modal{position:fixed;inset:0;background:rgba(14,26,43,.45);display:flex;align-items:flex-start;justify-content:center;padding:80px 16px;z-index:30}
+.ws-launch{width:100%;max-width:640px}
+.ws-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.ws-appcard{font:inherit;color:var(--fg);text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.ws-appcard small{color:var(--muted);font-size:12px}
+.ws-waffle:focus-visible,.ws-tab:focus-visible,.ws-appcard:focus-visible,.seg button:focus-visible,.path button:focus-visible,.ws-close:focus-visible,.ws-agentbtn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+</style>
+
+<div class="shell">
+<nav class="side" aria-label="Console">
+<div class="sbrand" id="sbrand"></div>
+<label class="dswitch" for="dsel">Prototype: preview as<select id="dsel"></select></label>
+<div class="modebox"><span>Workspace</span><div class="seg"><button data-mode="core" aria-pressed="true">Core focus</button><button data-mode="full" aria-pressed="false">All features</button></div></div>
+<div class="grp">Start here</div>
+<button class="nav" data-v="store">Your store and brand</button>
+<button class="nav" data-v="pilot">Pilot lab<span class="n">4 wk</span></button>
+<div class="grp">Find and quote</div>
+<button class="nav" data-v="mission">Mission control</button>
+<button class="nav xtra" data-v="capture">Workshop capture</button>
+<button class="nav" data-v="calling">Calling desk<span class="n">1</span></button>
+<button class="nav" data-v="whatsapp">WhatsApp quotes</button>
+<button class="nav xtra" data-v="proposal">Proposals</button>
+<div class="grp">Issue and service</div>
+<button class="nav" data-v="issue">New policy at sale</button>
+<button class="nav" data-v="repo">Policy repository</button>
+<button class="nav" data-v="callbacks">Call-backs<span class="n" id="cbn">3</span></button>
+<button class="nav xtra" data-v="service">Servicing desk<span class="n">9</span></button>
+<button class="nav" data-v="claims">Claims<span class="n">27</span></button>
+<button class="nav xtra" data-v="billing">E-invoices</button>
+<div class="grp">Performance</div>
+<button class="nav" data-v="persist">Persistency score</button>
+<button class="nav" data-v="loss">Loss ratio by insurer</button>
+<button class="nav" data-v="auto">AI autopilot<span class="n">3 jobs</span></button>
+<div class="grp xtra">CRM</div>
+<button class="nav" data-v="agent">ORBIT Agent<span class="n">AI</span></button>
+<button class="nav xtra" data-v="crm-sales">Sales</button>
+<button class="nav xtra" data-v="crm-service">Service</button>
+<button class="nav xtra" data-v="crm-ins">Insurance</button>
+<p class="modenote" id="modenote">Core focus shows the claims and renewal loop. Every other feature is one tap away under All features.</p>
+</nav>
+<section class="work" id="work"></section>
+</div>
+<div class="crmws" id="crmws" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const S={v:'mission',approved:false,detected:false,addons:{zd:true,ep:true,rti:false,pa:false,rsa:false},chosen:'A',sent:false,invoiced:false};
+const $=s=>document.querySelector(s);
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+const head=(t,s,tags='')=>`<div class="head"><div><h1>${t}</h1><p class="sub">${s}</p></div><div class="status">${tags}</div></div>`;
+const V={
+mission:()=>missionView(),
+capture:()=>head('Workshop capture','Vehicles not insured through ORBIT')+`
+<div class="panel"><h2>Open job card</h2><div class="form"><label class="f" for="id">Enter any one: registration, chassis, engine, policy no. or mobile<input type="text" id="id" placeholder="UP32 AB 1234"></label><div style="display:flex;align-items:flex-end"><button class="btn a" id="detect">Detect</button></div></div>
+${S.detected?`<div class="detect"><b>Auto-detected</b> · Classic 350 Chrome · 2023 · from VAHAN<br>Insurance valid to [date] · Insurer: other · service history linked from DMS<br><span class="note">NCB and add-ons fill in after the rider consents.</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn a" data-toast="Consent link sent by SMS">Send consent link</button><button class="btn g" data-toast="Job card only; data deleted when it closes">Job card only</button></div>`:'<p class="note">Type any one detail and press Detect. No scanning needed.</p>'}</div>
+<div class="panel"><h2>Captured today</h2><div class="tbl"><table><tr><th>Bike</th><th>Visit</th><th>Current insurer</th><th>Expiry</th><th>Consent</th><th>Next step</th></tr>
+<tr><td>Classic 350</td><td>Service</td><td>Other, via bank</td><td>In 22 days</td><td><span class="tag">Yes</span></td><td>Quotes at pickup</td></tr>
+<tr><td>Hunter 350</td><td>Accident</td><td>Insurer C</td><td>8 months</td><td><span class="tag">Yes</span></td><td>Handle claim</td></tr>
+<tr><td>Bullet 350</td><td>Service</td><td>None found</td><td><span class="tag w">Expired</span></td><td><span class="tag">Yes</span></td><td>Break-in inspection</td></tr>
+<tr><td>Meteor 350</td><td>Service</td><td>Insurer A</td><td>5 months</td><td><span class="tag b">Declined</span></td><td>Job card only</td></tr></table></div></div>`,
+calling:()=>head('Calling desk','Renewals · virtual caller covering [Executive 2]')+`
+<div class="cols"><div class="panel"><h2>Team today</h2><div class="list">
+<div class="item"><span><b>[Executive 1]</b> · on shift</span><span class="tag">38 calls</span></div>
+<div class="item"><span><b>[Executive 2]</b> · on leave</span><span class="tag b">Covered by virtual caller</span></div>
+<div class="item"><span><b>Virtual caller</b> · Hindi, English · says it is AI</span><span class="tag">41 calls</span></div></div>
+<p class="note">Calls only consented riders, DND checked, 9 am–9 pm. Credit goes to the absent executive.</p></div>
+<div class="panel"><h2>Discount bands</h2><div class="bands"><div class="b1" style="flex:4">Auto to [a]%</div><div class="b2" style="flex:3">Insurance head to [b]%</div><div class="b3" style="flex:2">Principal to [c]%</div></div><p class="note">Capped at each insurer's authorised OD discount. Deeper bands pay the executive less on that policy.</p></div></div>
+<div class="panel" style="border-color:var(--accent)"><h2>Approval request</h2><p>From [Executive 1] · Meteor 350 · Insurer A renewal · asked OD discount band 2<br><span class="note">Reason: competing quote ₹[y], 4-year rider, zero dep added. Impact: commission −₹[x], incentive −[z]%</span></p>
+${S.approved?'<span class="tag">Approved by Insurance head</span>':'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Counter-offer sent to executive">Counter</button><button class="btn g" data-toast="Escalated to dealer principal">Escalate</button><button class="btn" id="approve">Approve</button></div>'}</div>`,
+whatsapp:()=>head('WhatsApp multi-quote','Renewals due in 30 days')+`
+<div class="cols"><div class="panel"><h2>Campaign</h2><div class="kpis"><div class="kpi"><span>Selected</span><b>142</b></div><div class="kpi"><span>Opted in</span><b>131</b></div><div class="kpi w"><span>No consent, excluded</span><b>11</b></div></div>
+<p class="note">Live quotes from 3 insurers per rider's variant, IDV and NCB, plus Bima Sugam link. Approved template; commission disclosed; payment to insurer; STOP honoured.</p>
+${S.sent?'<span class="tag">Sent to 131 riders</span>':'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Test message sent to you">Send test</button><button class="btn a" id="send">Send to 131 riders</button></div>'}</div>
+<div class="panel"><h2>Preview</h2><div class="wa"><div class="msg">Hi [Rider], your <b>Classic 350 Chrome</b> policy expires on [date]. Quotes for your bike:<div class="q"><b>Insurer A</b> ₹[x] · back on road 5 d · settled 92%</div><div class="q"><b>Insurer B</b> ₹[x] · 8 d · 85%</div><div class="q"><b>Insurer C</b> ₹[x] · 11 d · 78%</div></div></div></div></div>`,
+proposal:()=>head('Proposals','Forwarded to customers')+`
+<div class="panel"><h2>Proposal [#P-ID] · Audi Q5 Technology</h2><div class="chips"><button class="chip" aria-pressed="true">WhatsApp</button><button class="chip" aria-pressed="true">SMS</button><button class="chip" aria-pressed="false">Email</button><button class="chip" aria-pressed="false">QR on screen</button></div>
+<p class="note">One smart link: opens in the app if installed, in the browser if not, or offers the app with the proposal carried over.</p><button class="btn a" data-toast="Proposal forwarded">Forward proposal</button></div>
+<div class="panel"><h2>Tracking</h2><div class="list"><div class="item"><span>Sent on WhatsApp</span><span class="note">10:42</span></div><div class="item"><span>Opened in browser</span><span class="note">10:51</span></div><div class="item"><span>Consent completed</span><span class="note">10:52</span></div><div class="item"><span>Added engine protect to Insurer A</span><span class="note">10:55</span></div><div class="item"><span>Awaiting insurer OTP and payment</span><span class="tag b">Open</span></div></div></div>`,
+issue:()=>issueView(),
+service:()=>head('Servicing desk','Requests routed to insurers by API')+`
+<div class="kpis"><div class="kpi"><span>Endorsements</span><b>9</b></div><div class="kpi"><span>Reg. no. updates</span><b>14</b></div><div class="kpi"><span>Transfers</span><b>3</b></div><div class="kpi"><span>Cancellations</span><b>2</b></div><div class="kpi w"><span>Grievances</span><b>1</b></div></div>
+<div class="panel"><div class="tbl"><table><tr><th>Request</th><th>Bike</th><th>Insurer</th><th>Age</th><th>Status</th></tr>
+<tr><td>Add registration no.</td><td>Classic 350</td><td>Insurer A</td><td>4 h</td><td><span class="tag">Endorsed</span></td></tr>
+<tr><td>Hypothecation update</td><td>Hunter 350</td><td>Insurer B</td><td>1 d</td><td><span class="tag b">With insurer</span></td></tr>
+<tr><td>Ownership transfer + NCB</td><td>Bullet 350</td><td>Insurer A</td><td>2 d</td><td><span class="tag b">Docs pending</span></td></tr>
+<tr><td>Cancel duplicate</td><td>Meteor 350</td><td>Insurer C</td><td>3 d</td><td><span class="tag">Refund to rider · clawback logged</span></td></tr>
+<tr><td>Grievance</td><td>Classic 350</td><td>Insurer B</td><td>6 d</td><td><span class="tag w">Escalate to GRO</span></td></tr></table></div></div>`,
+claims:()=>head('Claims','Workshop pipeline')+NORTH()+DELAYS()+`
+<div class="pipe"><div>Estimate sent<b>6</b></div><div>Awaiting approval<b>5</b></div><div>In repair<b>9</b></div><div class="hot">Awaiting DO<b>4</b></div><div>Ready for pickup<b>3</b></div></div>
+<div class="panel"><h2>Claim [#ID] · Classic 350 · Insurer A · cashless</h2><p class="note">Photos matched to digital twin · no prior damage · fraud check clear · back-on-road target Day 5</p>
+<div class="tbl"><table><tr><th>Part / labour</th><th>Estimate</th><th>Approved</th><th>Stock</th></tr><tr><td>Fuel tank</td><td class="n">₹[x]</td><td class="n">₹[x]</td><td><span class="tag">In stock</span></td></tr><tr><td>Front indicator</td><td class="n">₹[x]</td><td class="n">₹[x]</td><td><span class="tag">In stock</span></td></tr><tr><td>Crash guard</td><td class="n">₹[x]</td><td class="n">₹[x]</td><td><span class="tag w">ETA 2 d</span></td></tr></table></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Chat opened with surveyor">Chat surveyor</button><button class="btn a" data-toast="Final bill uploaded; DO requested from Insurer A">Upload bill, request DO</button></div></div>`,
+persist:()=>head('Persistency score','Renewals that stay with us, October','<span class="tag">Score 81 · zone median 72</span>')+`
+<p class="note">Fairness: hard cases (claim disputes, price rises above 10%) are weighted so executives are not rewarded for avoiding difficult customers. Scores coach; they do not punish.</p>
+<div class="kpis"><div class="kpi"><span>Renewal rate</span><b>78%</b><small>renewed ÷ due, within grace</small></div><div class="kpi"><span>On time</span><b>64%</b><small>renewed before expiry</small></div><div class="kpi"><span>Retained after claim</span><b>88%</b><small>best service signal</small></div><div class="kpi w"><span>Early cancellations</span><b>1.4%</b><small>within 90 days</small></div></div>
+<div class="cols"><div class="panel"><h2>How the score is built</h2><div class="tbl"><table style="min-width:420px"><tr><th>Component</th><th>Weight</th><th>Points</th></tr>
+<tr><td>Renewal rate</td><td class="n">50%</td><td class="n">39.0</td></tr><tr><td>On-time renewals</td><td class="n">20%</td><td class="n">12.8</td></tr><tr><td>Retention after claims</td><td class="n">15%</td><td class="n">13.2</td></tr><tr><td>Low early cancellations</td><td class="n">10%</td><td class="n">11.2 → capped 10</td></tr><tr><td>Complaint-free book</td><td class="n">5%</td><td class="n">6.0 → capped 5</td></tr><tr><td><b>Total</b></td><td></td><td class="n"><b>81</b></td></tr></table></div>
+<p class="note">Bikes sold, scrapped or moved city are excluded. Renewals done elsewhere are matched from VAHAN or the PIR.</p></div>
+<div class="panel"><h2>By executive</h2><div class="tbl"><table style="min-width:420px"><tr><th>Executive</th><th>Book</th><th>Score</th><th>Incentive effect</th></tr>
+<tr><td>[Executive 1]</td><td class="n">412</td><td class="n">86</td><td><span class="tag">+[x]% bonus</span></td></tr>
+<tr><td>[Executive 2]</td><td class="n">388</td><td class="n">79</td><td><span class="tag b">Standard</span></td></tr>
+<tr><td>[Executive 3]</td><td class="n">297</td><td class="n">68</td><td><span class="tag w">Coaching plan</span></td></tr></table></div></div></div>
+<div class="panel"><h2>Riders likely to lapse</h2><p class="note">Ranked by renewal likelihood: days to expiry, quote opened, claim experience, service visits, price change, past behaviour.</p><div class="tbl"><table><tr><th>Rider · bike</th><th>Expires</th><th>Likelihood</th><th>Main reason</th><th></th></tr>
+<tr><td>[Rider] · Meteor 350</td><td>3 days</td><td><span class="tag w">Low, 22%</span></td><td>Quote not opened, price up 9%</td><td><button class="btn" data-go="calling">Call</button></td></tr>
+<tr><td>[Rider] · Hunter 350</td><td>11 days</td><td><span class="tag w">Low, 35%</span></td><td>Claim took 13 days last year</td><td><button class="btn" data-go="calling">Call</button></td></tr>
+<tr><td>[Rider] · Classic 350</td><td>16 days</td><td><span class="tag b">Medium, 58%</span></td><td>No service visit in 14 months</td><td><button class="btn g" data-toast="Service reminder sent with consent">Send reminder</button></td></tr></table></div></div>`,
+billing:()=>head('E-invoices','GST invoices via the government portal')+`
+<div class="kpis"><div class="kpi"><span>Ready to raise</span><b>${S.invoiced?0:38}</b></div><div class="kpi"><span>IRN generated, Oct</span><b>${S.invoiced?450:412}</b></div><div class="kpi w"><span>Rejected</span><b>2</b></div><div class="kpi"><span>Commission reconciled</span><b>98%</b></div></div>
+<div class="panel"><div class="tbl"><table><tr><th>Type</th><th>Billed to</th><th>Basis</th><th>Status</th></tr>
+<tr><td>Commission (IDE)</td><td>Insurer A</td><td>84 policies, Oct</td><td><span class="tag">IRN issued</span></td></tr>
+<tr><td>Claims ops fee (services co.)</td><td>Insurer B</td><td>27 claims × rate</td><td>${S.invoiced?'<span class="tag">IRN issued</span>':'<span class="tag b">Ready</span>'}</td></tr>
+<tr><td>Pre-inspection fee</td><td>Insurer C</td><td>GSTIN mismatch</td><td><span class="tag w">Fix GSTIN</span></td></tr></table></div>
+<p class="note">IDE commission and services income are billed from separate GSTINs.</p>
+${S.invoiced?'':'<button class="btn a" id="inv">Generate 38 e-invoices</button>'}</div>`};
+/* ---------- CRM workspace (Lightning-style) and ORBIT Agent ---------- */
+const scl=s=>s>=70?'hi':s>=45?'mid':'lo';
+const APPS={
+sales:{name:'Sales',icon:'S',color:'#1F5FBF',tabs:['Home','Leads','Opportunities','Customers'],
+ objs:{Leads:{stages:['New','Contacted','Qualified','Converted'],rows:[
+  {n:'[Lead A]',sub:'Hunter 350 · walk-in',st:1,sc:66,own:'[Exec 1]',amt:'₹[x]',next:'Book test ride',src:'Walk-in'},
+  {n:'[Lead B]',sub:'Classic 350 · website',st:0,sc:41,own:'[Exec 2]',amt:'₹[x]',next:'First call',src:'Website'},
+  {n:'[Lead C]',sub:'Himalayan · OEM portal',st:2,sc:79,own:'[Exec 3]',amt:'₹[x]',next:'Convert to opportunity',src:'OEM portal'}]},
+  Opportunities:{stages:['Enquiry','Test ride','Negotiation','Booked','Delivered'],rows:[
+  {n:'[Customer A]',sub:'Hunter 350',st:1,sc:72,own:'[Exec 1]',amt:'₹[x]',next:'Test ride follow-up',src:'Walk-in'},
+  {n:'[Customer B]',sub:'Classic 350',st:2,sc:86,own:'[Exec 2]',amt:'₹[x]',next:'Finance docs',src:'Referral'},
+  {n:'[Customer C]',sub:'Meteor 350',st:0,sc:38,own:'[Exec 1]',amt:'₹[x]',next:'Call back',src:'Website'},
+  {n:'[Customer D]',sub:'Himalayan',st:3,sc:91,own:'[Exec 3]',amt:'₹[x]',next:'Delivery date',src:'Exchange'}]}},
+ kpis:[['Open opportunities','64'],['Bookings, Oct','41 / 55'],['Enquiry to booking','34%'],['Avg days to close','9']]},
+service:{name:'Service',icon:'W',color:'#1E7A46',tabs:['Home','Service Jobs','Customers'],
+ objs:{'Service Jobs':{stages:['Due','Reminded','Booked','In workshop','Delivered'],rows:[
+  {n:'[Customer G]',sub:'Classic 350 · 2nd service',st:0,sc:32,own:'[Advisor 1]',amt:'₹[x]',next:'Overdue 2 months',src:'Reminder'},
+  {n:'[Customer H]',sub:'Bullet 350 · general',st:2,sc:80,own:'[Advisor 2]',amt:'₹[x]',next:'Slot tomorrow 10 am',src:'App'},
+  {n:'[Customer I]',sub:'Hunter 350 · clutch',st:3,sc:88,own:'[Advisor 1]',amt:'₹[x]',next:'Clutch check',src:'Walk-in'},
+  {n:'[Customer J]',sub:'Meteor 350 · general',st:1,sc:55,own:'[Advisor 2]',amt:'₹[x]',next:'Reminder sent',src:'Reminder'}]}},
+ kpis:[['Services due, 30 days','218'],['Bays booked today','14 / 18'],['Workshop retention','71%'],['Avg turnaround','6.5 h']]},
+insurance:{name:'Insurance',icon:'I',color:'#C2500F',tabs:['Home','Renewals','Claims','Customers'],
+ objs:{Renewals:{stages:['Due','Quote sent','Approval','Renewed','Lapsed'],rows:[
+  {n:'[Customer M]',sub:'Meteor 350 · Insurer B',st:1,sc:22,own:'[CRE 1]',amt:'₹[premium]',next:'Expires in 3 days',src:'Book'},
+  {n:'[Customer N]',sub:'Classic 350 · Insurer A',st:0,sc:58,own:'[CRE 2]',amt:'₹[premium]',next:'Send quotes',src:'Book'},
+  {n:'[Customer O]',sub:'Hunter 350 · Insurer C',st:2,sc:47,own:'[CRE 1]',amt:'₹[premium]',next:'Band 2 discount',src:'Workshop capture'},
+  {n:'[Customer P]',sub:'Bullet 350 · Insurer A',st:3,sc:96,own:'[CRE 2]',amt:'₹[premium]',next:'Renewed',src:'Book'}]},
+  Claims:{stages:['Intimated','Estimate','Approved','In repair','DO issued','Delivered'],rows:[
+  {n:'[Customer Q]',sub:'Classic 350 · Insurer A',st:3,sc:80,own:'[CRE 1]',amt:'₹[x]',next:'Parts ETA 2 d',src:'App'},
+  {n:'[Customer R]',sub:'Hunter 350 · Insurer B',st:4,sc:50,own:'[CRE 2]',amt:'₹[x]',next:'DO 3 days late',src:'Walk-in'}]}},
+ kpis:[['Renewals due, 30 days','142'],['Renewal rate','78%'],['Persistency score','81'],['Open claims','27']]}};
+const CUST=[{n:'[Customer B]',sub:'Classic 350 · since 2023',sc:86,own:'[Exec 2]',st:0,amt:'',next:'Service due in 900 km',src:'Referral'},{n:'[Customer G]',sub:'Classic 350 · since 2021',sc:32,own:'[Advisor 1]',st:0,amt:'',next:'Upgrade candidate',src:'Walk-in'}];
+const W={open:false,app:'sales',tab:'Home',rec:null,mode:'table',filter:'',launcher:false,agentOpen:false,chat:[],plan:null,running:false,actTab:'Call'};
+function objOf(){return W.tab==='Customers'?{stages:['Active'],rows:CUST}:APPS[W.app].objs[W.tab]}
+function wsHeader(){const a=APPS[W.app];return `<div class="ws-global"><button class="ws-waffle" id="ws-launch" aria-label="App launcher"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></button>
+ <b class="ws-app" style="--ac:${a.color}">${a.name}</b><label class="ws-search"><span class="sr">Search</span><input type="text" id="ws-q" placeholder="Search ${a.name.toLowerCase()} records…" value="${W.filter.replace(/"/g,'&quot;')}"></label>
+ <button class="ws-agentbtn" id="ws-agent" aria-pressed="${W.agentOpen}">ORBIT Agent</button><button class="ws-close" id="ws-close">Exit CRM</button></div>
+ <nav class="ws-tabs" aria-label="${a.name} tabs">${a.tabs.map(t=>`<button class="ws-tab" data-wtab="${t}" aria-current="${W.tab===t?'page':'false'}">${t}</button>`).join('')}</nav>`}
+function wsHome(){const a=APPS[W.app];const all=Object.entries(a.objs).flatMap(([o,v])=>v.rows.map(r=>({...r,o})));const top=[...all].sort((x,y)=>x.sc-y.sc).slice(0,4);
+ return `<div class="ws-page"><div class="ws-grid"><div class="ws-main"><div class="ws-card"><h2>Key numbers</h2><div class="ws-kpis">${a.kpis.map(k=>`<div><span>${k[0]}</span><b>${k[1]}</b></div>`).join('')}</div></div>
+ <div class="ws-card"><h2>Needs attention</h2>${top.map(r=>`<div class="ws-item"><div><button class="rowlink" data-wopen="${r.o}|${a.objs[r.o].rows.indexOf(r)}">${r.n}</button><small>${r.o} · ${r.sub} · ${r.next}</small></div><span class="sc ${scl(r.sc)}">${r.sc}</span></div>`).join('')}</div></div>
+ <aside class="ws-side"><div class="ws-card ws-ai"><h2>Assistant</h2><p>${W.app==='sales'?'5 leads have had no contact for 7 days.':W.app==='service'?'4 bays are free tomorrow; 17 customers nearby are due.':'23 renewals expire this week; 8 are at high risk.'}</p><button class="btn a" data-wgoal="${W.app==='sales'?'Re-engage enquiries older than 7 days':W.app==='service'?'Fill tomorrow\'s empty service bays':'Chase all renewals expiring this week'}">Ask the agent to handle it</button></div>
+ ${W.app==='insurance'?'<div class="guard"><b>Insurance rules apply in this app only:</b> commission disclosed, discounts within the insurer\'s authorised band, premium paid to the insurer, consent per purpose, no bundling.</div>':''}</aside></div></div>`}
+function wsList(){const o=objOf();const f=W.filter.toLowerCase();const rows=o.rows.map((r,i)=>({...r,i})).filter(r=>!f||(r.n+r.sub+r.own).toLowerCase().includes(f)).sort((a,b)=>b.sc-a.sc);
+ const tbl=`<div class="tbl"><table><tr><th>Name</th><th>Details</th>${W.tab==='Customers'?'':'<th>Stage</th>'}<th>AI score</th><th>Owner</th><th>Next step</th></tr>${rows.map(r=>`<tr><td><button class="rowlink" data-wopen="${W.tab}|${r.i}">${r.n}</button></td><td>${r.sub}</td>${W.tab==='Customers'?'':`<td>${o.stages[r.st]}</td>`}<td><span class="sc ${scl(r.sc)}">${r.sc}</span></td><td>${r.own}</td><td>${r.next}</td></tr>`).join('')}</table></div>`;
+ const kan=`<div class="ws-kanban">${o.stages.map((s,si)=>{const cs=rows.filter(r=>r.st===si);return `<div class="ws-col"><h3>${s}<span>${cs.length}</span></h3>${cs.map(r=>`<div class="ws-kcard"><button class="rowlink" data-wopen="${W.tab}|${r.i}">${r.n}</button><small>${r.sub}</small><div class="ws-krow"><span class="sc ${scl(r.sc)}">${r.sc}</span>${si<o.stages.length-1?`<button class="ws-mini" data-wmove="${r.i}">Next stage →</button>`:''}</div></div>`).join('')}</div>`}).join('')}</div>`;
+ return `<div class="ws-page"><div class="ws-card"><div class="ws-lhead"><div><span class="ws-obj" style="background:${APPS[W.app].color}">${W.tab[0]}</span><div><small>${W.tab}</small><h2>All open ${W.tab.toLowerCase()} · ${rows.length} ${rows.length===1?'item':'items'}</h2></div></div>
+ <div class="ws-lact">${W.tab==='Customers'?'':`<div class="seg"><button data-wmode="table" aria-pressed="${W.mode==='table'}">Table</button><button data-wmode="kanban" aria-pressed="${W.mode==='kanban'}">Kanban</button></div>`}<button class="btn a" data-toast="New ${W.tab.toLowerCase().replace(/s$/,'')} form opened">New</button></div></div>
+ ${W.mode==='kanban'&&W.tab!=='Customers'?kan:tbl}<p class="note">Sorted by AI score. ${W.filter?'Filtered by "'+W.filter+'".':''}</p></div></div>`}
+function wsRecord(){const [o,i]=W.rec;const obj=o==='Customers'?{stages:['Active'],rows:CUST}:APPS[W.app].objs[o];const r=obj.rows[i];
+ const acts=['Call','Task','WhatsApp'];
+ return `<div class="ws-page"><button class="ws-crumb" id="ws-back">← ${o}</button>
+ <div class="ws-card ws-hl"><div class="ws-hltop"><span class="ws-obj" style="background:${APPS[W.app].color}">${o[0]}</span><div><small>${o.replace(/s$/,'')}</small><h2>${r.n}</h2></div><div class="ws-hlbtn"><button class="btn g" data-toast="Following ${r.n}">Follow</button><button class="btn g" data-toast="Edit form opened">Edit</button><button class="btn a" data-wgoal="Follow up with ${r.n} about ${r.next.toLowerCase()}">Agent follow-up</button></div></div>
+ <div class="ws-hlf"><div>Details<b>${r.sub}</b></div><div>Owner<b>${r.own}</b></div><div>Value<b>${r.amt||'—'}</b></div><div>Source<b>${r.src}</b></div><div>AI score<b><span class="sc ${scl(r.sc)}">${r.sc}</span></b></div></div></div>
+ ${o==='Customers'?'':`<div class="ws-card"><div class="path" role="group" aria-label="Stage">${obj.stages.map((s,si)=>`<button data-wstage="${si}" class="${si<r.st?'done':si===r.st?'cur':''}">${s}</button>`).join('')}</div>
+ <div class="ws-pathfoot"><span class="note">Current: ${obj.stages[r.st]}</span>${r.st<obj.stages.length-1?`<button class="btn" data-wstage="${r.st+1}">Mark stage complete</button>`:''}</div></div>`}
+ <div class="ws-grid"><div class="ws-main"><div class="ws-card"><h2>Details</h2><div class="ws-det"><div>Name<b>${r.n}</b></div><div>Vehicle / item<b>${r.sub}</b></div><div>Next step<b>${r.next}</b></div><div>Owner<b>${r.own}</b></div></div></div>
+ <div class="ws-card"><h2>Related</h2><div class="ws-item"><div><b>Vehicle</b><small>${r.sub.split(' · ')[0]} · registration [UP32 XX 0000]</small></div></div>${W.app!=='insurance'?'<div class="ws-item"><div><b>Service history</b><small>3 visits · last 3 months ago</small></div></div>':'<div class="ws-item"><div><b>Policy</b><small>Expiry, insurer and claims, shown in this app only</small></div></div>'}</div>
+ <div class="ws-card"><h2>Activity history</h2><div class="tl"><div>WhatsApp sent by ${r.own}<small>Today, 10:42</small></div><div>Call, 3 min, interested<small>Yesterday</small></div><div>Record created<small>4 days ago</small></div></div></div></div>
+ <aside class="ws-side"><div class="ws-card"><div class="seg">${acts.map(a=>`<button data-wact="${a}" aria-pressed="${W.actTab===a}">${a}</button>`).join('')}</div>
+ <label class="f" for="ws-note" style="margin-top:8px">${W.actTab==='Call'?'Call notes':W.actTab==='Task'?'Task subject':'Message'}<input type="text" id="ws-note" placeholder="${W.actTab==='Call'?'What was discussed?':W.actTab==='Task'?'e.g. Call back Friday':'Type or let the agent draft'}"></label>
+ <button class="btn a" data-toast="${W.actTab} logged on ${r.n}" style="align-self:flex-start;margin-top:8px">Save</button></div>
+ <div class="ws-card ws-ai"><h2>Why ${r.sc}?</h2><p>${r.sc>=70?'Engaged recently, replies quickly, clear next step.':'Slow replies, no visit in a while, price concern noted.'}</p></div></aside></div></div>`}
+function wsAgent(){if(!W.agentOpen)return '';const chips=['Chase all renewals expiring this week','Fill tomorrow\'s empty service bays','Re-engage enquiries older than 7 days','Prepare my morning brief'];
+ return `<aside class="ws-agent" aria-label="ORBIT Agent"><div class="ws-agh"><b>ORBIT Agent</b><button class="ws-mini" id="ws-agx">Close</button></div>
+ <div class="ws-chat">${W.chat.length?'':'<p class="note">Give me a goal. I will show a plan and wait for your approval before doing anything.</p>'}
+ ${W.chat.map(m=>`<div class="msg ${m.who}">${m.t}</div>`).join('')}
+ ${W.plan?`<div class="plan">${W.plan.map((s,i)=>`<div class="step ${s.st}"><span class="ic">${s.st==='ok'?'✓':i+1}</span><div><b>${s.t}</b><small>${s.d}</small></div></div>`).join('')}</div>
+ ${W.plan.every(s=>s.st==='ok')?'':W.running?'<p class="note">Running…</p>':'<div class="ws-agbtns"><button class="btn a" id="ws-run">Approve and run</button><button class="btn g" id="ws-cancel">Cancel</button></div>'}`:''}</div>
+ <div class="chips">${chips.map(c=>`<button class="chip" data-wgoal="${c.replace(/'/g,'&#39;')}" aria-pressed="false">${c}</button>`).join('')}</div>
+ <div class="ws-agin"><label class="sr" for="ws-goal">Goal</label><input type="text" id="ws-goal" placeholder="Ask the agent…"><button class="btn a" id="ws-send">Send</button></div></aside>`}
+function wsLauncher(){if(!W.launcher)return '';return `<div class="ws-modal" role="dialog" aria-label="App launcher"><div class="ws-card ws-launch"><h2>Apps</h2><div class="ws-apps">${Object.entries(APPS).map(([k,a])=>`<button class="ws-appcard" data-wapp="${k}"><span class="ws-obj" style="background:${a.color}">${a.icon}</span><b>${a.name}</b><small>${a.tabs.slice(1).join(', ')}</small></button>`).join('')}</div><button class="btn g" id="ws-lclose" style="align-self:flex-start">Close</button></div></div>`}
+function wsRender(){const el=$('#crmws');el.hidden=!W.open;if(!W.open)return;
+ el.innerHTML=wsHeader()+`<div class="ws-body">${W.rec?wsRecord():W.tab==='Home'?wsHome():wsList()}${wsAgent()}</div>`+wsLauncher();
+ const q=$('#ws-q');if(q&&W.focusQ){q.focus();q.setSelectionRange(q.value.length,q.value.length);W.focusQ=false}}
+function planFor(g){const l=g.toLowerCase();
+ if(l.startsWith('follow up with'))return[['Read the record and last 3 conversations','Picks up what was promised'],['Draft a WhatsApp in the owner\'s name','Approved template, personalised'],['Set a reminder if no reply in 24 h','Added to the owner\'s tasks'],['Update the stage when the customer replies','Logged on the timeline']];
+ if(l.includes('renewal'))return[['Find renewals expiring in 7 days','Insurance app · 23 riders, 4 without consent excluded'],['Rank by renewal likelihood','Lowest first'],['Draft WhatsApp quotes from each CRE','3 insurers, commission shown'],['Schedule calls for the 8 lowest scores','Added to tomorrow\'s tasks'],['Send discount asks for approval','Agent never decides discounts']];
+ if(l.includes('bay')||l.includes('service'))return[['Check tomorrow\'s workshop slots','Service app · 4 bays free'],['Find customers due nearby','17 within 5 km'],['Draft booking offers','Pickup option included'],['Hold slots until 6 pm','Released if no reply']];
+ if(l.includes('enquir')||l.includes('lead'))return[['Find enquiries idle 7 days','Sales app · 12 leads'],['Score purchase likelihood','5 above 60'],['Draft personal follow-ups','Mentions the model asked about'],['Offer test-ride slots','Assigned to the original executive']];
+ if(l.includes('brief'))return[['Collect today\'s tasks in all apps','Sales 6 · Service 9 · Insurance 11'],['Rank by value at risk','Top 10 first'],['Send summary on WhatsApp to you','By 9 am']];
+ return[['Understand the goal','Match it to Sales, Service or Insurance records'],['Find the records involved','Shown before any action'],['Draft the actions','Nothing sent until you approve']]}
+function ask(g){W.agentOpen=true;W.chat=[{who:'me',t:g},{who:'bot',t:'Here is my plan. I will wait for your approval.'}];W.plan=planFor(g).map(([t,d])=>({t,d,st:''}));W.running=false;wsRender()}
+function openWS(app){W.open=true;W.app=app;W.tab='Home';W.rec=null;W.filter='';document.body.style.overflow='hidden';wsRender()}
+Object.assign(V,{'crm-sales':()=>head('CRM','Opening Sales…'),'crm-service':()=>head('CRM','Opening Service…'),'crm-ins':()=>head('CRM','Opening Insurance…'),agent:()=>head('ORBIT Agent','Opening…')});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ const nv=b.dataset.v;if(nv&&nv.startsWith('crm-')){e.stopPropagation();openWS({'crm-sales':'sales','crm-service':'service','crm-ins':'insurance'}[nv]);return}
+ if(nv==='agent'){e.stopPropagation();openWS('sales');W.agentOpen=true;wsRender();return}
+ if(!b.closest('#crmws'))return;e.stopPropagation();
+ if(b.id==='ws-close'){W.open=false;document.body.style.overflow='';wsRender();return}
+ if(b.id==='ws-launch'){W.launcher=true;wsRender();return}
+ if(b.id==='ws-lclose'){W.launcher=false;wsRender();return}
+ if(b.dataset.wapp){W.app=b.dataset.wapp;W.tab='Home';W.rec=null;W.launcher=false;wsRender();return}
+ if(b.dataset.wtab){W.tab=b.dataset.wtab;W.rec=null;wsRender();return}
+ if(b.dataset.wmode){W.mode=b.dataset.wmode;wsRender();return}
+ if(b.dataset.wopen){const [o,i]=b.dataset.wopen.split('|');W.tab=o;W.rec=[o,+i];wsRender();return}
+ if(b.id==='ws-back'){W.rec=null;wsRender();return}
+ if(b.dataset.wstage){const [o,i]=W.rec;APPS[W.app].objs[o].rows[i].st=+b.dataset.wstage;wsRender();toast('Stage updated');return}
+ if(b.dataset.wmove){const r=objOf().rows[+b.dataset.wmove];r.st++;wsRender();toast(r.n+' moved');return}
+ if(b.dataset.wact){W.actTab=b.dataset.wact;wsRender();return}
+ if(b.dataset.toast){toast(b.dataset.toast);return}
+ if(b.id==='ws-agent'){W.agentOpen=!W.agentOpen;wsRender();return}
+ if(b.id==='ws-agx'){W.agentOpen=false;wsRender();return}
+ if(b.dataset.wgoal){ask(b.dataset.wgoal);return}
+ if(b.id==='ws-send'){const g=$('#ws-goal').value.trim();if(g)ask(g);else toast('Type a goal or pick a suggestion');return}
+ if(b.id==='ws-cancel'){W.plan=null;W.chat.push({who:'bot',t:'Cancelled. Nothing was changed.'});wsRender();return}
+ if(b.id==='ws-run'){W.running=true;let i=0;const tick=()=>{if(i<W.plan.length){W.plan[i].st='ok';i++;wsRender();setTimeout(tick,420)}else{W.running=false;W.chat.push({who:'bot',t:'Done. Each action is logged on its record.'});wsRender();toast('Agent finished')}};tick();return}},true);
+document.addEventListener('input',e=>{if(e.target.id==='ws-q'){W.filter=e.target.value;if(W.tab==='Home'){W.tab=Object.keys(APPS[W.app].objs)[0]}W.focusQ=true;wsRender()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ws-goal'){const g=e.target.value.trim();if(g)ask(g)}});
+/* ---------- Systems and design-thinking additions ---------- */
+S.mode='core';S.checks={};
+const NORTH=()=>`<div class="north"><div><small>North-star metric · whole dealership</small><div class="big">6.1 days</div><small>Average back on road · target 5.0 · zone median 7.4</small></div>
+<div><small>Last 6 months</small><div class="bars" aria-label="Back-on-road days falling from 8.2 to 6.1">${[8.2,7.9,7.4,7.0,6.6,6.1].map(v=>`<i style="height:${Math.round(v/8.2*48)}px" title="${v} d"></i>`).join('')}</div></div>
+<div><small>Biggest delay right now</small><b>Insurer B delivery orders</b><small>3.1 days average wait</small></div></div>`;
+const DELAYS=()=>`<div class="panel"><h2>Who is holding each bike</h2><p class="note">Every delay has a named owner, so the person who can fix it sees it first.</p><div class="tbl"><table><tr><th>Bike</th><th>Stage</th><th>Waiting on</th><th>Waiting</th><th></th></tr>
+<tr><td>Classic 350 · [Customer]</td><td>Awaiting DO</td><td><span class="owner late">Insurer B claims desk</span></td><td class="n">3 d</td><td><button class="btn a" data-toast="Escalated to Insurer B with timeline attached">Escalate</button></td></tr>
+<tr><td>Hunter 350 · [Customer]</td><td>In repair</td><td><span class="owner late">Parts: crash guard</span></td><td class="n">2 d</td><td><button class="btn g" data-toast="Parts order chased with OEM">Chase parts</button></td></tr>
+<tr><td>Meteor 350 · [Customer]</td><td>Awaiting approval</td><td><span class="owner">Surveyor [name]</span></td><td class="n">5 h</td><td><button class="btn g" data-toast="Surveyor nudged on WhatsApp">Nudge</button></td></tr>
+<tr><td>Bullet 350 · [Customer]</td><td>Final bill</td><td><span class="owner">Customer approval</span></td><td class="n">1 d</td><td><button class="btn g" data-toast="Bill resent to customer">Resend bill</button></td></tr></table></div></div>`;
+const RESEARCH=[['shadow','Shadow 2 CREs and 2 service advisors for 5 days','Count clicks, calls and waiting time on real claims and renewals','Week 1'],['riders','Interview 10 riders who claimed last year','Map their real journey and the worst moment','Week 1–2'],['insurers','Interview 3 insurer claims heads','Ask what they would pay per claim and what they fear','Week 2'],['test','Test the dealer console with 3 CREs','5 real tasks each; target under 60 seconds per task','Week 3'],['concierge','Run claims coordination by hand for 10 dealers','WhatsApp and a shared sheet, no new software','Week 3–4'],['measure','Measure days back on road before and after','Decide what to build, keep or park','Week 4']];
+const TESTS=[['Find the bike waiting longest',41,60],['Escalate a delayed DO',22,60],['Send renewal quotes to one rider',74,60],['Log a call on a customer',18,60],['Approve a discount request',35,60]];
+function pilotView(){const done=RESEARCH.filter(r=>S.checks[r[0]]).length;
+ return head('Pilot lab','Empathise and test before scaling · four-week plan','<span class="tag b">Design thinking</span><span class="tag b">Systems thinking</span>')+NORTH()+`
+<div class="panel"><h2>Problem we are solving first</h2><p style="font-size:17px;line-height:1.5;margin:0">A Royal Enfield rider whose bike is damaged needs it back within a week because they ride to work, but today it waits <b>10–14 days</b> for approvals and paperwork that nobody tracks.</p>
+<div class="chips"><span class="tag b">How might we get approval within hours of the first photo?</span><span class="tag b">How might we show every delay to the person who can fix it?</span><span class="tag b">How might we make the CRE's day easier, not longer?</span></div></div>
+<div class="cols"><div class="panel"><h2>Research plan · ${done} of ${RESEARCH.length} done</h2><div class="meter"><i style="width:${Math.round(done/RESEARCH.length*100)}%"></i></div>
+${RESEARCH.map(r=>`<label class="chk"><input type="checkbox" data-chk="${r[0]}" ${S.checks[r[0]]?'checked':''}><span><b>${r[1]}</b><small>${r[2]} · ${r[3]}</small></span></label>`).join('')}</div>
+<div class="panel"><h2>Usability test results</h2><p class="note">Seconds per task in the last CRE session. Target: under 60.</p><div class="tbl"><table style="min-width:360px"><tr><th>Task</th><th>Time</th><th>Result</th></tr>
+${TESTS.map(t=>`<tr><td>${t[0]}</td><td class="n">${t[1]} s</td><td>${t[1]<=t[2]?'<span class="tag">Pass</span>':'<span class="tag w">Too slow, redesign</span>'}</td></tr>`).join('')}</table></div></div></div>
+<div class="panel"><h2>Who we are designing for</h2><div class="persona">
+<div><b>CRE</b><small>Wants: hit renewal targets without chasing portals</small><small>Pain: calls, WhatsApp and 4 insurer portals at once</small></div>
+<div><b>Service advisor</b><small>Wants: full bays, fast turnaround</small><small>Pain: insurance paperwork slows repairs</small></div>
+<div><b>Rider after an accident</b><small>Wants: bike back to get to work</small><small>Pain: does not know what DO or deductions mean</small></div>
+<div><b>Insurer claims head</b><small>Wants: lower cost and leakage</small><small>Fear: a distributor controlling claims</small></div>
+<div><b>Surveyor</b><small>Wants: steady survey income</small><small>Fear: AI estimates replacing visits</small></div>
+<div><b>Dealer principal</b><small>Wants: margin and OEM scores</small><small>Pain: insurance income falling under caps</small></div></div>
+<p class="note">Goals conflict: the surveyor wants survey fees while the insurer wants fewer surveys. Design so both gain, for example paid video surveys.</p></div>
+<div class="panel"><h2>Loops we are watching</h2><div class="persona">
+<div class="loopcard"><span class="kind">Reinforcing · build it</span><b>Service flywheel</b><small>Faster claims → happier riders → more renewals → more data → faster claims</small><small>Signal: back-on-road days falling, retained-after-claim rising</small></div>
+<div class="loopcard"><span class="kind">Balancing · watch</span><b>Adoption fatigue</b><small>More features → more clicks → less use → worse data</small><small>Signal: tasks over 60 s, daily active CREs falling. Core focus mode is the counter-measure.</small></div>
+<div class="loopcard"><span class="kind">Balancing · watch</span><b>Insurer resistance</b><small>ORBIT gains power → insurers build in-house</small><small>Signal: pilots stalling. Price below in-house cost, stay neutral.</small></div>
+<div class="loopcard"><span class="kind">Balancing · watch</span><b>Regulatory brake</b><small>Hidden margin grows → regulator caps it</small><small>Signal: any income a customer would object to if disclosed.</small></div></div></div>
+<div class="panel"><h2>Feature roadmap</h2><p class="note">Nothing is removed. Features are sequenced by closeness to the core loop.</p><div class="tbl"><table style="min-width:420px"><tr><th>Phase</th><th>Features</th></tr>
+<tr><td><span class="tag">Now · core loop</span></td><td>Mission control, claims and delay owners, calling desk, WhatsApp quotes, persistency, ORBIT Agent</td></tr>
+<tr><td><span class="tag b">Next</span></td><td>Policy issuance, servicing desk, e-invoices, workshop capture, proposals</td></tr>
+<tr><td><span class="tag b">Then</span></td><td>Sales and Service CRM, insurer portal, rider app</td></tr>
+<tr><td><span class="tag w">Later</span></td><td>Satellite alerts, connected cars, telematics, fraud graph, rider academy, reinsurer data</td></tr></table></div></div>`}
+V.pilot=pilotView;
+function applyMode(){$('.shell').classList.toggle('core',S.mode==='core');document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));$('#modenote').hidden=S.mode!=='core'}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!b.dataset.mode)return;S.mode=b.dataset.mode;applyMode();toast(S.mode==='core'?'Core focus: claims and renewal loop':'All features shown')});
+document.addEventListener('change',e=>{const k=e.target.dataset.chk;if(k){S.checks[k]=e.target.checked;render()}});
+/* ---------- Dealer storefront (Shopify-style) ---------- */
+const DEALERS=[
+ {id:'lr',name:'Lucknow Royal Riders',short:'Royal Riders',city:'Lucknow',color:'#B3261E',mark:'RR',domain:'royalriders.orbit.in'},
+ {id:'kt',name:'Kanpur Thunder Motors',short:'Thunder Motors',city:'Kanpur',color:'#1F5FBF',mark:'TM',domain:'thundermotors.orbit.in'},
+ {id:'ah',name:'Agra Highway Bikes',short:'Highway Bikes',city:'Agra',color:'#1E7A46',mark:'HB',domain:'highwaybikes.orbit.in'}];
+let DL=DEALERS[0];
+S.apps={claims:true,renewals:true,whatsapp:true,crm:true,einv:true,capture:false,telematics:false};
+S.setup={logo:true,whatsapp:true,staff:false,insurers:false,domain:false};
+function brandify(h){return h.split('[Dealer name], Lucknow').join(DL.name+', '+DL.city).split('[Dealer name]').join(DL.name).split('[Dealer]').join(DL.short)}
+function brandBar(){$('#sbrand').innerHTML=`<span class="dmark" style="background:${DL.color}">${DL.mark}</span><span><b>${DL.name}</b><small>${DL.city} · powered by ORBIT</small></span>`;
+ $('#dsel').innerHTML=DEALERS.map(d=>`<option value="${d.id}" ${d.id===DL.id?'selected':''}>${d.name}</option>`).join('');
+ document.documentElement.style.setProperty('--accent',DL.color);document.title=DL.name+' · Dealer console'}
+const SETUP=[['logo','Add your logo and brand colour','Shown on your customer app and messages'],['whatsapp','Connect your WhatsApp Business number','Customers chat with your CREs, not ORBIT'],['staff','Invite your staff','CREs, service advisors, sales executives'],['insurers','Connect your insurer partners','Choose which insurers your customers see'],['domain','Choose your web address','Your proposal links use your name']];
+const APPLIST=[['claims','Claims workbench','Core'],['renewals','Renewals and calling desk','Core'],['whatsapp','WhatsApp quotes','Core'],['crm','Sales and Service CRM','Add-on'],['einv','GST e-invoicing','Add-on'],['capture','Workshop capture','Add-on'],['telematics','Connected cars and telematics','Add-on']];
+function storeView(){const done=SETUP.filter(x=>S.setup[x[0]]).length;const cols=['#B3261E','#1F5FBF','#1E7A46','#7A2E8C','#C2500F','#0E1A2B'];
+ return head('Your store and brand','Your customers see '+DL.name+', not ORBIT','<span class="tag b">'+DL.domain+'</span>')+`
+<div class="panel"><h2>Set up your store · ${done} of ${SETUP.length}</h2><div class="meter"><i style="width:${Math.round(done/SETUP.length*100)}%"></i></div>
+${SETUP.map(x=>`<label class="chk"><input type="checkbox" data-setup="${x[0]}" ${S.setup[x[0]]?'checked':''}><span><b>${x[1]}</b><small>${x[2]}</small></span></label>`).join('')}</div>
+<div class="store"><div class="panel"><h2>Brand</h2>
+<label class="f" for="bn">Dealership name<input type="text" id="bn" value="${DL.name}"></label>
+<label class="f" for="bm">Logo initials<input type="text" id="bm" maxlength="3" value="${DL.mark}"></label>
+<span class="note">Brand colour</span><div class="swrow">${cols.map(c=>`<button class="swb" data-bc="${c}" style="background:${c}" aria-label="Colour ${c}" aria-pressed="${DL.color===c}"></button>`).join('')}</div>
+<label class="f" for="bd">Web address<input type="text" id="bd" value="${DL.domain}"></label>
+<button class="btn a" id="bsave" style="align-self:flex-start">Save brand</button>
+<p class="note">Your name appears on the customer app, WhatsApp messages, proposal links, emails and invoices. A small "Powered by ORBIT" line stays for trust and support.</p></div>
+<div class="panel"><h2>Your customer app</h2><div class="phone"><div class="ph" style="background:${DL.color}"><span class="dmark" style="background:rgba(255,255,255,.2);width:30px;height:30px;font-size:11px">${DL.mark}</span><span><b>${DL.name}</b><small>Powered by ORBIT</small></span></div>
+<div class="pb"><div><b>18 days to renewal</b><br>3 quotes from ${DL.short}</div><div><b>Claim tracker</b><br>Repair at ${DL.short} workshop</div><div class="pbtn" style="background:${DL.color}">Compare quotes</div></div></div>
+<p class="note" style="text-align:center">Live preview · updates as you change your brand</p></div></div>
+<div class="panel"><h2>Apps</h2><p class="note">Turn features on like apps in a store. Core apps run the claims and renewal loop; add-ons can be switched on any time.</p><div class="applist">
+${APPLIST.map(a=>`<label class="appitem"><span><b>${a[1]}</b><small>${a[2]}</small></span><input type="checkbox" data-app="${a[0]}" ${S.apps[a[0]]?'checked':''}></label>`).join('')}</div></div>
+<div class="panel"><h2>Same platform, every dealer</h2><p class="note">Each dealership gets its own branded store on the shared ORBIT platform: its own customers, data space, staff and web address.</p><div class="tbl"><table style="min-width:420px"><tr><th>Dealership</th><th>Web address</th><th>Customer app name</th></tr>
+${DEALERS.map(d=>`<tr><td><span class="dmark" style="background:${d.color};width:26px;height:26px;font-size:10px;display:inline-flex;vertical-align:middle;margin-right:8px">${d.mark}</span>${d.name}</td><td>${d.domain}</td><td>${d.name}</td></tr>`).join('')}</table></div></div>`}
+V.store=storeView;
+document.addEventListener('change',e=>{
+ if(e.target.id==='dsel'){DL=DEALERS.find(d=>d.id===e.target.value);brandBar();render();toast('Previewing as '+DL.name);return}
+ const k=e.target.dataset.setup;if(k){S.setup[k]=e.target.checked;render();return}
+ const a=e.target.dataset.app;if(a){S.apps[a]=e.target.checked;toast((e.target.checked?'Installed: ':'Removed: ')+APPLIST.find(x=>x[0]===a)[1])}});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.bc){DL.color=b.dataset.bc;brandBar();render();return}
+ if(b.id==='bsave'){const n=$('#bn').value.trim(),m=$('#bm').value.trim().toUpperCase(),d=$('#bd').value.trim();if(n)DL.name=n;if(m)DL.mark=m;if(d)DL.domain=d;S.setup.logo=true;brandBar();render();toast('Brand saved. Customer app updated.')}});
+/* ---------- Issuance at sale, policy repository, call-back routing ---------- */
+const fmt=d=>d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const plus7=d=>{const x=new Date(d);x.setFullYear(x.getFullYear()+7);return x};
+const daysAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return d};
+S.iss={pay:'direct',step:1,sale:'new',reg:'',detected:false,paid:false,issued:null,appSent:false,appInstalled:false};
+const REPO=[
+ {no:'POL-24-001842',cust:'[Customer A]',veh:'Classic 350 · new',sale:'New vehicle',ins:'Insurer A',src:'Dealer console',by:'[CRE 1]',d:daysAgo(2),ver:1,app:true,hist:['v1 Issued at delivery']},
+ {no:'POL-24-001790',cust:'[Customer B]',veh:'Hunter 350 · pre-owned',sale:'Pre-owned',ins:'Insurer B',src:'Dealer console',by:'[CRE 2]',d:daysAgo(9),ver:2,app:false,hist:['v1 Issued at resale','v2 Registration number added']},
+ {no:'POL-24-001655',cust:'[Customer C]',veh:'Meteor 350 · renewal',sale:'Renewal',ins:'Insurer A',src:'Customer app',by:'Customer self-service',d:daysAgo(31),ver:1,app:true,hist:['v1 Renewed in customer app']},
+ {no:'POL-21-000412',cust:'[Customer D]',veh:'Bullet 350 · new',sale:'New vehicle',ins:'Insurer C',src:'Dealer console',by:'[CRE 1]',d:daysAgo(1460),ver:3,app:true,hist:['v1 Issued at delivery','v2 Hypothecation added','v3 Address changed']},
+ {no:'POL-19-000087',cust:'[Customer E]',veh:'Classic 350 · new',sale:'New vehicle',ins:'Insurer B',src:'Dealer console',by:'[CRE 3]',d:daysAgo(2400),ver:1,app:false,hist:['v1 Issued at delivery']}];
+S.rf={from:'',to:'',src:'all',q:''};S.rsel=null;
+function stepsBar(n){const L=['Sale and vehicle','Rider KYC','Cover','Insurer OTP and payment','Issued and handed over'];return `<div class="steps">${L.map((l,i)=>`<span class="${i+1<n?'d':i+1===n?'c':''}">${i+1} ${l}</span>`).join('')}</div>`}
+function issueView(){const I=S.iss,a=S.addons;const ad=[['zd','Zero depreciation'],['ep','Engine protect'],['rti','Return to invoice'],['pa','Standalone PA'],['rsa','RSA plan (ORBIT)']];
+ const nav=(back,next,label)=>`<div style="display:flex;gap:8px;flex-wrap:wrap">${back?`<button class="btn g" data-istep="${back}">Back</button>`:''}${next?`<button class="btn a" data-istep="${next}">${label}</button>`:''}</div>`;
+ let body='';
+ if(I.step===1)body=`<div class="panel"><h2>Type of sale</h2><div class="chips"><button class="chip" data-sale="new" aria-pressed="${I.sale==='new'}">New vehicle</button><button class="chip" data-sale="used" aria-pressed="${I.sale==='used'}">Pre-owned vehicle</button></div>
+ ${I.sale==='new'?`<p>Royal Enfield Classic 350 Chrome · picked from DMS sales invoice<br>Chassis and engine number filled · IDV ₹[x] · RTO Lucknow · new registration</p><p><span class="tag">DMS invoice matched</span></p>`:
+ `<div class="form"><label class="f" for="ireg">Registration, chassis or old policy number<input type="text" id="ireg" value="${I.reg}" placeholder="UP32 AB 1234"></label><div style="display:flex;align-items:flex-end"><button class="btn" id="idetect">Detect</button></div></div>
+ ${I.detected?`<div class="detect"><b>Detected</b> · Hunter 350 · 2022 · from VAHAN<br>Previous policy: Insurer B, expires in 4 months · NCB 25% transferable to new owner<br><span class="note">Ownership transfer: previous policy is transferred or cancelled; new owner's KYC is mandatory. If the old policy has lapsed, a break-in inspection is booked.</span></div>`:'<p class="note">Type one detail; no scanning needed.</p>'}`}</div>${nav(0,2,'Next: rider KYC')}`;
+ if(I.step===2)body=`<div class="panel"><h2>Rider KYC</h2><p><span class="tag">CKYC fetched</span> <span class="tag">Aadhaar OTP verified</span> <span class="tag">Mobile matches VAHAN</span></p><p>[Customer name] · mobile [+91 XXXXX XXXXX] · email [x]<br>PA nominee: [name], [relation]</p><p class="note">Consent for policy issuance recorded. Marketing consent is asked separately in the customer app.</p></div>${nav(1,3,'Next: cover')}`;
+ if(I.step===3)body=`<div class="panel"><h2>Cover builder · ${I.sale==='new'?'1Y OD + 5Y TP':'1Y comprehensive'}</h2><div class="tbl"><table style="min-width:420px"><tr><th>Insurer</th><th>Premium</th><th>Back on road</th><th></th></tr>
+ ${['A','B','C'].map((i,k)=>`<tr><td>Insurer ${i}</td><td class="n">₹[x]</td><td class="n">${[5,8,11][k]} d</td><td>${S.chosen===i?'<span class="tag b">Chosen</span>':`<button class="btn g" data-choose="${i}">Choose</button>`}</td></tr>`).join('')}</table></div>
+ <div class="chips">${ad.map(([k,l])=>`<button class="chip" data-addon="${k}" aria-pressed="${a[k]}">${l}</button>`).join('')}</div>
+ <p class="note">Bima Sugam option shown to the customer and acknowledged. Commission disclosed on the quote.</p></div>${nav(2,4,'Next: insurer OTP and payment')}`;
+ if(I.step===4)body=`<div class="panel"><h2>Insurer verification and payment</h2><p>Insurer ${S.chosen} sent an OTP to the customer's mobile: <span class="tag">Verified</span></p>
+ <span class="note">Who collects the premium?</span><div class="chips"><button class="chip" data-paymode="direct" aria-pressed="${I.pay==='direct'}">Customer pays insurer directly</button><button class="chip" data-paymode="dealer" aria-pressed="${I.pay==='dealer'}">Customer pays dealer, dealer pays insurer</button></div>
+ ${I.pay==='direct'?`<p>Payment link from Insurer ${S.chosen}'s gateway sent to the customer. The premium goes straight to the insurer.</p>`:
+ `<div class="tbl"><table style="min-width:420px"><tr><th>Step</th><th>Detail</th><th>Status</th></tr>
+ <tr><td>1. Customer pays dealer</td><td>Cash, UPI or card at the counter, added to the vehicle invoice or separate</td><td>${I.paid?'<span class="tag">Received</span>':'<span class="tag w">Pending</span>'}</td></tr>
+ <tr><td>2. Dealer receipt to customer</td><td>Premium receipt no. [DR-xxxx], amount shown separately from vehicle price</td><td>${I.paid?'<span class="tag">Issued</span>':'—'}</td></tr>
+ <tr><td>3. Dealer pays insurer</td><td>From dealer's float (cash deposit) account with Insurer ${S.chosen} · balance ₹[x]</td><td>${I.paid?'<span class="tag">Debited</span>':'—'}</td></tr>
+ <tr><td>4. Reconciliation</td><td>Matched daily: dealer receipt ↔ insurer debit ↔ policy</td><td>${I.paid?'<span class="tag">Matched</span>':'—'}</td></tr></table></div>
+ <p class="note">Check with compliance: current rules allow premium collection only through insurer-approved arrangements such as a float account, and the IRDAI proposals favour direct payment to insurers. Keep this mode switchable per insurer.</p>`}
+ ${I.paid?`<span class="tag">${I.pay==='direct'?'Payment received by insurer':'Customer paid dealer · dealer paid insurer from float'}</span>`:`<button class="btn" id="ipaid">${I.pay==='direct'?'Simulate customer payment':'Record customer payment at counter'}</button>`}</div>${nav(3,I.paid?5:0,'Issue policy')}`;
+ if(I.step===5){const p=I.issued;body=`<div class="panel" style="border-color:var(--good)"><h2>Policy issued · ${p.no}</h2><p>${p.cust} · ${p.veh} · Insurer ${S.chosen} · ${I.pay==='dealer'?'paid through dealer (receipt [DR-xxxx])':'paid directly to insurer'}<br>Issued ${fmt(p.d)} by ${p.by} · saved to the <b>[Dealer name]</b> policy repository · kept until <b>${fmt(plus7(p.d))}</b></p>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Policy PDF opened for printing">Print PDF</button><button class="btn g" data-toast="Policy PDF sent on WhatsApp and email">Send PDF to customer</button></div></div>
+ <div class="cols"><div class="panel"><h2>Hand over: get the customer on the app</h2><p>Ask the customer to download the <b>[Dealer name]</b> app before they leave. The policy is already linked to their mobile number, so it appears in the app automatically.</p>
+ <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div aria-label="QR code to download the app" style="width:120px;height:120px;border-radius:10px;background:repeating-conic-gradient(var(--fg) 0 25%,var(--surface) 0 50%) 0 0/20px 20px;border:8px solid var(--surface);outline:1px solid var(--line)"></div>
+ <div style="display:flex;flex-direction:column;gap:8px">${I.appSent?'<span class="tag">App link sent by SMS and WhatsApp</span>':'<button class="btn a" id="iapp">Send app link by SMS and WhatsApp</button>'}
+ ${I.appInstalled?'<span class="tag">Installed · policy visible in customer app</span>':`<button class="btn g" id="iinst">Simulate customer installs app</button>`}</div></div></div>
+ <div class="panel"><h2>Handover checklist</h2><div class="list"><div class="item"><span>Policy PDF given</span><span class="tag">Done</span></div><div class="item"><span>App downloaded</span>${I.appInstalled?'<span class="tag">Done</span>':'<span class="tag w">Pending</span>'}</div><div class="item"><span>Stored in repository</span><span class="tag">Done</span></div><div class="item"><span>First service booked</span><button class="btn g" data-toast="First service booked">Book</button></div></div></div></div>
+ <button class="btn g" id="inew" style="align-self:flex-start">Start another policy</button>`}
+ return head('New policy at sale','New or pre-owned vehicle · issued by the dealer','<span class="tag b">Every policy saved for 7 years</span>')+stepsBar(I.step)+body}
+function repoView(){const f=S.rf;const from=f.from?new Date(f.from):null,to=f.to?new Date(f.to+'T23:59:59'):null;
+ const rows=REPO.filter(r=>(!from||r.d>=from)&&(!to||r.d<=to)&&(f.src==='all'||r.src===f.src)&&(!f.q||(r.no+r.cust+r.veh).toLowerCase().includes(f.q.toLowerCase())));
+ const sel=S.rsel!=null?REPO[S.rsel]:null;
+ return head('Policy repository','Every policy issued by [Dealer name] or its customers, in one place','<span class="tag b">Cloud database · 7-year retention</span>')+`
+ <div class="kpis"><div class="kpi"><span>Policies stored</span><b>${REPO.length}</b><small>sample</small></div><div class="kpi"><span>From dealer console</span><b>${REPO.filter(r=>r.src==='Dealer console').length}</b></div><div class="kpi"><span>From customer app</span><b>${REPO.filter(r=>r.src==='Customer app').length}</b></div><div class="kpi w"><span>Customers without app</span><b>${REPO.filter(r=>!r.app).length}</b><small>send app link</small></div></div>
+ <div class="panel"><div class="form"><label class="f" for="rfrom">Issued from<input type="date" id="rfrom" value="${f.from}"></label><label class="f" for="rto">Issued to<input type="date" id="rto" value="${f.to}"></label>
+ <label class="f" for="rsrc">Issued through<select id="rsrc"><option value="all">All</option><option ${f.src==='Dealer console'?'selected':''}>Dealer console</option><option ${f.src==='Customer app'?'selected':''}>Customer app</option></select></label>
+ <label class="f" for="rq">Search<input type="text" id="rq" value="${f.q}" placeholder="Policy no., name, vehicle"></label></div>
+ <div class="tbl"><table><tr><th>Policy no.</th><th>Customer</th><th>Vehicle</th><th>Issued</th><th>Through</th><th>Version</th><th>Kept until</th><th></th></tr>
+ ${rows.map(r=>`<tr><td class="n">${r.no}</td><td>${r.cust}</td><td>${r.veh}</td><td>${fmt(r.d)}</td><td>${r.src==='Customer app'?'<span class="tag b">Customer app</span>':'Dealer console'}</td><td class="n">v${r.ver}</td><td>${fmt(plus7(r.d))}</td><td><button class="btn g" data-rsel="${REPO.indexOf(r)}">Open</button></td></tr>`).join('')||'<tr><td colspan="8">No policies match these filters.</td></tr>'}</table></div>
+ <p class="note">Stored under this dealer's own space in the cloud database, encrypted. Records can be fetched for any date and updated; every update adds a version and keeps the earlier ones. Records are kept for 7 years from issue, then deleted.</p></div>
+ ${sel?`<div class="panel"><h2>${sel.no} · ${sel.cust}</h2><p>${sel.veh} · ${sel.ins} · ${sel.sale}<br>Issued ${fmt(sel.d)} through ${sel.src} by ${sel.by} · kept until ${fmt(plus7(sel.d))}<br>Customer app: ${sel.app?'policy visible':'not installed'}</p>
+ <h2 style="font-size:15px">Version history</h2><div class="list">${sel.hist.map(h=>`<div class="item"><span>${h}</span></div>`).join('')}</div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Policy PDF opened">View PDF</button><button class="btn g" id="rupd">Record an update</button>${sel.app?'':'<button class="btn a" data-toast="App link sent; policy will appear when installed">Send app link</button>'}</div></div>`:''}`}
+const CBS=[
+ {id:'CB-311',cust:'[Customer M]',veh:'Meteor 350',why:'Renewal quote',exp:'in 3 days',owner:'[Dealer name]',age:20,st:'open',log:['Raised in customer app','Assigned to [Dealer name]']},
+ {id:'CB-308',cust:'[Customer Q]',veh:'Classic 350',why:'Claim help',exp:'in 7 months',owner:'[Dealer name]',age:5,st:'open',log:['Raised in customer app','Assigned to [Dealer name]']},
+ {id:'CB-297',cust:'[Customer S]',veh:'Himalayan',why:'Change in policy',exp:'in 2 months',owner:'[Dealer name]',age:2,st:'open',from:'Kanpur Thunder Motors',log:['Raised in customer app','Assigned to Kanpur Thunder Motors','No response in 24 h','Routed to nearest dealer: [Dealer name], 4 km']}];
+function cbView(){const open=CBS.filter(c=>c.st!=='closed');$('#cbn')&&( $('#cbn').textContent=open.filter(c=>c.owner==='[Dealer name]').length);
+ return head('Call-backs','Customers asking to be called · 24-hour response rule','<span class="tag b">Routed to nearest dealer if missed</span>')+`
+ <div class="panel"><h2>How routing works</h2><p class="note">A call-back goes to the customer's dealer of record. If nobody responds within 24 hours, it moves to the nearest dealer, and keeps moving until someone closes it. Call-backs can be raised only while the policy is active, up to its expiry.</p></div>
+ <div class="panel"><div class="tbl"><table><tr><th>ID</th><th>Customer</th><th>Reason</th><th>Policy expires</th><th>With</th><th>Time left</th><th>Status</th><th></th></tr>
+ ${CBS.map((c,i)=>{const left=24-c.age;return `<tr><td class="n">${c.id}</td><td>${c.cust} · ${c.veh}${c.from?`<br><span class="note">Routed in from ${c.from}</span>`:''}</td><td>${c.why}</td><td>${c.exp}</td><td>${c.owner}</td><td class="n">${c.st==='closed'?'—':left>0?left+' h':'<span class="tag w">Overdue</span>'}</td><td>${c.st==='closed'?'<span class="tag">Closed</span>':c.owner==='[Dealer name]'?'<span class="tag b">Open</span>':'<span class="tag w">Rerouted</span>'}</td>
+ <td>${c.st==='closed'||c.owner!=='[Dealer name]'?'':`<button class="btn g" data-cbcall="${i}">Call</button> <button class="btn a" data-cbclose="${i}">Close</button>`}</td></tr>`}).join('')}</table></div>
+ <button class="btn g" id="cbsim" style="align-self:flex-start">Prototype: let 24 hours pass</button></div>
+ ${CBS.map(c=>`<details class="panel"><summary>${c.id} history</summary><div class="list">${c.log.map(l=>`<div class="item"><span>${l}</span></div>`).join('')}</div></details>`).join('')}`}
+V.repo=repoView;V.callbacks=cbView;
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const I=S.iss;
+ if(b.dataset.sale){I.sale=b.dataset.sale;I.detected=false;render();return}
+ if(b.id==='idetect'){I.reg=$('#ireg').value;I.detected=true;render();toast('Vehicle and previous policy found');return}
+ if(b.dataset.istep){const n=+b.dataset.istep;if(n===5&&!I.issued){const p={no:'POL-24-00'+(1900+REPO.length),cust:'[New customer]',veh:(I.sale==='new'?'Classic 350 · new':'Hunter 350 · pre-owned'),sale:I.sale==='new'?'New vehicle':'Pre-owned',ins:'Insurer '+S.chosen,src:'Dealer console',by:'[CRE 1]',d:new Date(),ver:1,app:false,hist:['v1 Issued at '+(I.sale==='new'?'delivery':'resale')]};REPO.unshift(p);I.issued=p;toast('Policy issued and saved to repository')}I.step=n;render();window.scrollTo(0,0);return}
+ if(b.dataset.paymode){I.pay=b.dataset.paymode;I.paid=false;render();return}
+ if(b.id==='ipaid'){I.paid=true;if(I.pay==='dealer')toast('Receipt issued; insurer paid from dealer float');render();return}
+ if(b.id==='iapp'){I.appSent=true;render();toast('App download link sent');return}
+ if(b.id==='iinst'){I.appInstalled=true;I.appSent=true;if(I.issued){I.issued.app=true}render();toast('Customer installed the app; policy now in their app');return}
+ if(b.id==='inew'){S.iss={pay:'direct',step:1,sale:'new',reg:'',detected:false,paid:false,issued:null,appSent:false,appInstalled:false};render();return}
+ if(b.dataset.rsel){S.rsel=+b.dataset.rsel;render();return}
+ if(b.id==='rupd'){const r=REPO[S.rsel];r.ver++;r.hist.push('v'+r.ver+' Endorsement recorded '+fmt(new Date()));render();toast('Update saved as version '+r.ver+'; earlier versions kept');return}
+ if(b.dataset.cbclose){const c=CBS[+b.dataset.cbclose];c.st='closed';c.log.push('Closed by [Dealer name]');render();toast(c.id+' closed');return}
+ if(b.dataset.cbcall){toast('Calling '+CBS[+b.dataset.cbcall].cust);return}
+ if(b.id==='cbsim'){CBS.forEach(c=>{if(c.st==='closed')return;c.age+=24;if(c.owner==='[Dealer name]'&&c.age>=24){const tried=[c.owner].concat(c.from?[c.from]:[]);const next=['Kanpur Thunder Motors','Agra Highway Bikes'].find(d=>!tried.includes(d))||'Agra Highway Bikes';c.from=c.from||null;c.owner=next;c.age=0;c.log.push('No response in 24 h','Routed to next nearest dealer: '+next)}});render();toast('24 hours passed; missed call-backs rerouted');return}});
+document.addEventListener('change',e=>{const id=e.target.id;if(id==='rfrom'){S.rf.from=e.target.value;render()}if(id==='rto'){S.rf.to=e.target.value;render()}if(id==='rsrc'){S.rf.src=e.target.value;render()}});
+document.addEventListener('input',e=>{if(e.target.id==='rq'){S.rf.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#rq');q.focus();q.setSelectionRange(pos,pos)}});
+/* ---------- AI autopilot jobs and loss ratio ---------- */
+const JOBS={
+ renew:{t:'Renewal cycle',on:true,when:'Every morning 8:00',last:'Today 8:00 · 23 renewals handled',
+  steps:[['Find policies expiring in 45 days','23 found · 4 without consent left out'],['Fetch quotes from 3 insurers','Exact variant, IDV, NCB'],['Draft WhatsApp in each CRE\'s name','Approved template, commission shown'],['Book calls for 8 riders least likely to renew','Added to CRE task lists'],['Send payment links and chase twice','Day 3 and day 7 reminders'],['Pause for a person','2 discount requests sent to Insurance head']]},
+ cb:{t:'Call-back queue',on:true,when:'Every hour',last:'Today 18:00 · 3 checked, 1 handled',
+  steps:[['Check open call-backs','3 open'],['Find any near the 24-hour limit','1 at 20 h, nobody assigned'],['AI caller rings the customer','Says it is an AI assistant for the dealer'],['Answers or books a person','Renewal quote sent; human call booked 11:00'],['Logs the result and closes or hands over','Logged on customer record']]},
+ night:{t:'Night reconciliation',on:true,when:'Every night 23:30',last:'Last night · 41 payments matched, 3 flagged',
+  steps:[['Collect dealer premium receipts','41 receipts, ₹[x] total'],['Collect insurer float debits','Insurers A, B, C statements'],['Match receipt ↔ debit ↔ policy','38 matched automatically'],['Flag mismatches','3 flagged for morning'],['Send morning summary','WhatsApp to accounts and principal, 8:30']]}};
+S.jobRun=null;S.jobDone={};S.appr=[{t:'Band 2 discount',d:'[Customer O] · Hunter 350 · Insurer C',st:'open'},{t:'Band 3 discount',d:'[Customer M] · Meteor 350 · Insurer B',st:'open'}];
+const MISM=[['DR-2291','Receipt ₹[x], no insurer debit','Insurer B float may be short','Top up float'],['DR-2284','Insurer debit ₹[x], no dealer receipt','Policy issued without counter entry','Find receipt'],['DR-2276','Amounts differ by ₹[x]','Add-on removed after receipt','Refund or re-issue']];
+function autoView(){const R=S.jobRun;
+ return head('AI autopilot','Jobs the ORBIT Agent runs on its own, pausing for a person where it matters','<span class="tag b">Human approval on</span>')+`
+ <div class="kpis"><div class="kpi"><span>Renewals handled today</span><b>23</b><small>8 calls booked</small></div><div class="kpi"><span>Call-backs saved</span><b>1</b><small>before 24 h limit</small></div><div class="kpi w"><span>Payment mismatches</span><b>3</b><small>from last night</small></div><div class="kpi w"><span>Waiting for you</span><b>${S.appr.filter(a=>a.st==='open').length}</b><small>approvals</small></div></div>
+ <div class="cols">${Object.entries(JOBS).map(([k,j])=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>${j.t}</h2><label class="toggle" style="min-height:36px;border:none;padding:0;gap:6px">${j.on?'On':'Off'}<input type="checkbox" data-jobon="${k}" ${j.on?'checked':''}></label></div>
+ <p class="note">${j.when} · ${j.last}</p>
+ ${R===k||S.jobDone[k]?`<div class="plan">${j.steps.map((st,i)=>`<div class="step ${S.jobDone[k]||(R===k&&i<S.jobStep)?'ok':''}"><span class="ic">${S.jobDone[k]||(R===k&&i<S.jobStep)?'✓':i+1}</span><div><b>${st[0]}</b><small>${st[1]}</small></div></div>`).join('')}</div>`:`<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--muted)">${j.steps.map(st=>`<li>${st[0]}</li>`).join('')}</ul>`}
+ <button class="btn ${j.on?'a':'g'}" data-jobrun="${k}" ${j.on&&!R?'':'disabled'} style="align-self:flex-start">${R===k?'Running…':'Run now'}</button></div>`).join('')}</div>
+ <div class="cols"><div class="panel"><h2>Waiting for a person</h2><div class="list">${S.appr.map((a,i)=>`<div class="item"><span><b>${a.t}</b> · ${a.d}</span>${a.st==='open'?`<span style="display:flex;gap:6px"><button class="btn g" data-apr="${i}|no">Decline</button><button class="btn" data-apr="${i}|yes">Approve</button></span>`:`<span class="tag ${a.st==='Approved'?'':'w'}">${a.st}</span>`}</div>`).join('')}</div></div>
+ <div class="panel"><h2>Night reconciliation: flagged</h2><div class="tbl"><table style="min-width:420px"><tr><th>Receipt</th><th>Problem</th><th>Likely cause</th><th></th></tr>${MISM.map(m=>`<tr><td class="n">${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td><td><button class="btn g" data-toast="${m[3]}: task created for accounts">${m[3]}</button></td></tr>`).join('')}</table></div></div></div>
+ <p class="note">The agent never approves discounts, rejects claims, cancels policies or moves money on its own. Every action is logged on the customer record.</p>`}
+const LR=[
+ {ins:'Insurer A',pol:812,ep:182.4,own:61,else:24,paid:78.6,os:22.7,prev:58.1},
+ {ins:'Insurer B',pol:455,ep:96.7,own:33,else:21,paid:55.2,os:18.9,prev:69.4},
+ {ins:'Insurer C',pol:198,ep:41.2,own:12,else:15,paid:28.4,os:9.5,prev:81.0}];
+S.lrSeg='All vehicles';
+function lossView(){const rows=LR.map(r=>({...r,inc:+(r.paid+r.os).toFixed(1),lr:(r.paid+r.os)/r.ep*100}));const tEp=rows.reduce((a,r)=>a+r.ep,0),tInc=rows.reduce((a,r)=>a+r.inc,0);
+ return head('Loss ratio by insurer','Policies issued by [Dealer name] · claims reported at any workshop or dealer · last 12 months','<span class="tag b">Incurred ÷ earned premium</span>')+`
+ <div class="kpis"><div class="kpi"><span>Overall loss ratio</span><b>${(tInc/tEp*100).toFixed(1)}%</b><small>₹${tInc.toFixed(1)} L incurred on ₹${tEp.toFixed(1)} L earned</small></div><div class="kpi"><span>Claims at our workshop</span><b>${rows.reduce((a,r)=>a+r.own,0)}</b></div><div class="kpi w"><span>Claims reported elsewhere</span><b>${rows.reduce((a,r)=>a+r.else,0)}</b><small>other dealers or garages</small></div><div class="kpi"><span>Policies in force</span><b>${rows.reduce((a,r)=>a+r.pol,0).toLocaleString('en-IN')}</b></div></div>
+ <div class="chips">${['All vehicles','New','Pre-owned','Renewal'].map(x=>`<button class="chip" data-lrseg="${x}" aria-pressed="${S.lrSeg===x}">${x}</button>`).join('')}</div>
+ <div class="panel"><div class="tbl"><table><tr><th>Insurer</th><th>Policies</th><th>Earned premium</th><th>Claims at our workshop</th><th>Claims elsewhere</th><th>Paid</th><th>Outstanding</th><th>Loss ratio</th><th>12 months ago</th></tr>
+ ${rows.map(r=>`<tr><td>${r.ins}</td><td class="n">${r.pol}</td><td class="n">₹${r.ep} L</td><td class="n">${r.own}</td><td class="n">${r.else}</td><td class="n">₹${r.paid} L</td><td class="n">₹${r.os} L</td><td><span class="tag ${r.lr>=85?'w':r.lr>=70?'b':''}">${r.lr.toFixed(1)}%</span></td><td class="n">${r.prev}%</td></tr>`).join('')}</table></div>
+ <p class="note">Loss ratio = (claims paid + outstanding) ÷ earned premium, for policies this dealer issued, wherever the claim was reported. Sample figures in ₹ lakh. Segment filter is illustrative.</p></div>
+ <div class="cols"><div class="panel"><h2>What the AI sees</h2><div class="list">
+ <div class="item"><span><b>Insurer C at ${rows[2].lr.toFixed(0)}%</b> · 56% of its claims are reported outside our workshop, mostly older Bullet 350s. Expect tighter renewal terms; push pre-inspection on pre-owned sales.</span></div>
+ <div class="item"><span><b>Insurer A improving</b> · loss ratio down from ${rows[0].prev}% to ${rows[0].lr.toFixed(0)}% as zero-dep claims settle faster at our workshop.</span></div>
+ <div class="item"><span><b>Leakage</b> · ${rows.reduce((a,r)=>a+r.else,0)} claims went to other workshops. Claim-to-workshop routing could bring repair revenue back.</span></div></div></div>
+ <div class="panel"><h2>Why it matters</h2><p class="note">Insurers judge a dealer's book by its loss ratio. A healthy ratio supports better servicing terms and faster approvals; a high one invites stricter underwriting. Use it with the persistency score when negotiating.</p></div></div>`}
+V.auto=autoView;V.loss=lossView;
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.jobrun){const k=b.dataset.jobrun;S.jobRun=k;S.jobStep=0;S.jobDone[k]=false;render();const n=JOBS[k].steps.length;const tick=()=>{S.jobStep++;if(S.jobStep>=n){S.jobRun=null;S.jobDone[k]=true;render();toast(JOBS[k].t+' finished. Results logged.');return}render();setTimeout(tick,420)};setTimeout(tick,420);return}
+ if(b.dataset.apr){const [i,v]=b.dataset.apr.split('|');S.appr[+i].st=v==='yes'?'Approved':'Declined';render();toast('Decision sent to the CRE');return}
+ if(b.dataset.lrseg){S.lrSeg=b.dataset.lrseg;render();return}});
+document.addEventListener('change',e=>{const k=e.target.dataset.jobon;if(k){JOBS[k].on=e.target.checked;render();toast(JOBS[k].t+(e.target.checked?' switched on':' paused'))}});
+/* ---------- Role-based Mission control ---------- */
+S.role='principal';
+const ROLES=[['principal','Dealer principal'],['sales','Sales'],['service','Service'],['insurance','Insurance']];
+const INS_BODY=`
+<div class="kpis"><div class="kpi"><span>Renewals due, 30 days</span><b>142</b><small>38 not contacted</small></div><div class="kpi w"><span>Open claims</span><b>27</b><small>4 waiting on DO</small></div><div class="kpi"><span>Avg back on road</span><b>6.1 d</b><small>Zone median 7.4 d</small></div><div class="kpi"><span>Compliance score</span><b>96%</b><small>2 suitability notes pending</small></div><div class="kpi"><span>Persistency score</span><b>81</b><small>Zone median 72 · <button class="btn g" style="min-height:28px;padding:0 8px;font-size:12px" data-go="persist">Details</button></small></div></div>
+<div class="cols"><div class="panel"><h2>Today's Daily Mix</h2><div class="list">
+<div class="item"><span><b>Renewal at risk</b> · Meteor 350, expires in 3 days, quote not opened</span><button class="btn" data-go="calling">Call rider</button></div>
+<div class="item"><span><b>DO delayed</b> · Classic 350, Insurer B, 3 days past bill</span><button class="btn a" data-go="claims">Escalate</button></div>
+<div class="item"><span><b>Service due</b> · 19 bikes past 6,000 km</span><button class="btn g" data-toast="Reminders queued for 19 riders with consent">Send reminders</button></div>
+<div class="item"><span><b>Uninsured at workshop</b> · Bullet 350, policy expired</span><button class="btn g" data-go="capture">Open</button></div></div></div>
+<div class="panel" style="background:var(--side);color:var(--side-fg);border-color:var(--side)"><h2>Sky Watch</h2><p class="note" style="color:var(--side-muted)">Satellite and weather risk</p><p><b style="color:#FFB27A">Heavy rain alert</b><br>Gomti riverside wards, next 48 h. 64 riders in zone.</p><button class="btn a" data-toast="Move-to-safety alert sent to 64 riders">Send alert</button></div></div>`;
+const kp=(l,v,n,w)=>`<div class="kpi${w?' w':''}"><span>${l}</span><b>${v}</b><small>${n}</small></div>`;
+const it=(t,d,btn,attr)=>`<div class="item"><span><b>${t}</b> · ${d}</span><button class="btn${attr.includes('data-go')?'':' g'}" ${attr}>${btn}</button></div>`;
+function northBox(lbl,val,sub,trend,side,sideSub){const mx=Math.max(...trend);return `<div class="north"><div><small>North-star metric · ${lbl}</small><div class="big">${val}</div><small>${sub}</small></div>
+<div><small>Last 6 months</small><div class="bars">${trend.map(v=>`<i style="height:${Math.round(v/mx*48)}px"></i>`).join('')}</div></div><div><small>Biggest blocker right now</small><b>${side}</b><small>${sideSub}</small></div></div>`}
+const ROLEVIEW={
+principal:()=>northBox('whole dealership','₹[x] L','Gross profit this month across sales, service and insurance',[62,66,64,70,73,78],'Insurer B delivery orders','4 bikes held 3+ days')+`
+<div class="kpis">${kp('Vehicles sold, Oct','41','Target 55')}${kp('Workshop retention','71%','Zone 63%')}${kp('Renewal rate','78%','Persistency 81')}${kp('Back on road','6.1 d','Target 5.0',1)}${kp('Customer complaints','3','2 open')}</div>
+<div class="cols"><div class="panel"><h2>Team scorecard</h2><div class="tbl"><table style="min-width:420px"><tr><th>Team</th><th>Today</th><th>Month vs target</th><th></th></tr>
+<tr><td>Sales</td><td>6 tasks · 2 hot leads</td><td class="n">74%</td><td><button class="btn g" data-role="sales">Open</button></td></tr>
+<tr><td>Service</td><td>9 tasks · 4 free bays</td><td class="n">88%</td><td><button class="btn g" data-role="service">Open</button></td></tr>
+<tr><td>Insurance</td><td>11 tasks · 1 approval waiting</td><td class="n">81%</td><td><button class="btn g" data-role="insurance">Open</button></td></tr></table></div></div>
+<div class="panel"><h2>Needs your decision</h2><div class="list">${it('Discount above band','Meteor 350 renewal, band 3','Review','data-go="calling"')}${it('Exchange offer','Customer B, Classic 350 to Himalayan','Approve','data-toast="Exchange offer approved"')}${it('Staff gap','Executive 2 on leave, virtual caller covering','View','data-go="calling"')}</div></div></div>`,
+sales:()=>northBox('sales','34%','Enquiry to booking conversion · zone 28%',[26,28,29,31,32,34],'Finance approvals','5 bookings waiting on NBFC documents')+`
+<div class="kpis">${kp('Open enquiries','64','12 new today')}${kp('Test rides this week','23','8 booked today')}${kp('Bookings, Oct','41','Target 55',1)}${kp('Deliveries due','9','Next 7 days')}${kp('Avg days to close','9','Zone 11')}</div>
+<div class="cols"><div class="panel"><h2>Today's priorities</h2><div class="list">${it('Hot lead','Hunter 350, test ride yesterday, score 86','Call now','data-toast="Calling Customer B"')}${it('Finance pending','Classic 350, NBFC documents missing','Send checklist','data-toast="Document checklist sent on WhatsApp"')}${it('Quote going cold','Meteor 350, quote 4 days old','Follow up','data-toast="Follow-up drafted"')}${it('Delivery tomorrow','Himalayan, accessories to fit','Prepare','data-toast="Delivery checklist opened"')}</div></div>
+<div class="panel"><h2>Pipeline</h2><div class="pipe"><div>Enquiry<b>28</b></div><div>Test ride<b>17</b></div><div>Negotiation<b>11</b></div><div class="hot">Booked<b>8</b></div></div><button class="btn" data-v2="crm-sales">Open Sales CRM</button></div></div>`,
+service:()=>northBox('service','6.5 h','Average workshop turnaround · target 6 h',[8.1,7.6,7.2,7.0,6.8,6.5],'Clutch plates out of stock','3 jobs waiting on parts')+`
+<div class="kpis">${kp('Bays booked today','14 / 18','4 free slots',1)}${kp('Services due, 30 days','218','64 not booked')}${kp('Workshop retention','71%','Zone 63%')}${kp('Repeat complaints','2','Same issue twice')}${kp('Customer rating','4.6','Last 100 jobs')}</div>
+<div class="cols"><div class="panel"><h2>Today's priorities</h2><div class="list">${it('Fill free bays','4 slots tomorrow, 17 customers due nearby','Ask agent','data-toast="Agent drafted booking offers for approval"')}${it('Pickup ready','Meteor 350, job card closed','Notify','data-toast="Customer notified"')}${it('Repeat complaint','Hunter 350, same issue twice','Escalate','data-toast="Escalated to works manager"')}${it('Service overdue','19 bikes past 6,000 km','Send reminders','data-toast="Reminders queued for consented riders"')}</div></div>
+<div class="panel"><h2>Workshop now</h2><div class="pipe"><div>Waiting<b>3</b></div><div>In bay<b>9</b></div><div class="hot">Waiting parts<b>3</b></div><div>Ready<b>5</b></div></div><button class="btn" data-v2="crm-service">Open Service CRM</button></div></div>`,
+insurance:()=>northBox('insurance and claims','6.1 days','Average back on road · target 5.0 · zone median 7.4',[8.2,7.9,7.4,7.0,6.6,6.1],'Insurer B delivery orders','3.1 days average wait')+INS_BODY};
+function missionView(){return head('Mission control','Thursday · '+ROLES.find(r=>r[0]===S.role)[1]+' view','<span class="tag">PIR sync live</span><span class="tag">Bima Sugam QR on display</span>')+
+`<div class="seg rolebar" role="group" aria-label="Role">${ROLES.map(r=>`<button data-role="${r[0]}" aria-pressed="${S.role===r[0]}">${r[1]}</button>`).join('')}</div>`+ROLEVIEW[S.role]()}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.role){S.role=b.dataset.role;S.v='mission';render();return}
+ if(b.dataset.v2){e.stopPropagation();const nb=document.querySelector(`.nav[data-v="${b.dataset.v2}"]`);if(nb)nb.click()}},true);
+function render(){$('#work').innerHTML=brandify(V[S.v]());document.querySelectorAll('.nav').forEach(n=>n.setAttribute('aria-current',n.dataset.v===S.v?'page':'false'))}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.v){S.v=b.dataset.v;render();window.scrollTo(0,0);return}
+ if(b.dataset.go){S.v=b.dataset.go;render();window.scrollTo(0,0);return}
+ if(b.dataset.toast){toast(b.dataset.toast);return}
+ if(b.dataset.choose){S.chosen=b.dataset.choose;render();return}
+ if(b.dataset.addon){S.addons[b.dataset.addon]=!S.addons[b.dataset.addon];render();return}
+ if(b.id==='detect'){S.detected=true;render();toast('Vehicle matched from one detail');return}
+ if(b.id==='approve'){S.approved=true;render();toast('Approved. Executive notified.');return}
+ if(b.id==='send'){S.sent=true;render();toast('Campaign queued for 131 riders');return}
+ if(b.id==='inv'){S.invoiced=true;render();toast('38 invoices sent to the portal');return}});
+brandBar();
+applyMode();
+render();
+</script>
+
+</body>
+</html>

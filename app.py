@@ -24,6 +24,7 @@ a, b, c = st.columns(3)
 a.page_link("pages/1_Dealer_Console.py", label="Dealer console", icon="🏪")
 b.page_link("pages/2_Insurer_Portal.py", label="Insurer portal", icon="🏢")
 c.page_link("pages/3_Rider_App.py", label="Rider app", icon="📱")
+st.page_link("pages/4_Full_Prototypes.py", label="Full clickable prototypes (all artifact features)", icon="🧩")
 
 with st.expander("Dummy master data"):
     st.write("**Insurers**")
