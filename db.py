@@ -50,11 +50,14 @@ CREATE TABLE IF NOT EXISTS leads(
 CREATE TABLE IF NOT EXISTS calls(
   id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, policy_no TEXT, outcome TEXT, note TEXT,
   next_date TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS invoices(
+  policy_no TEXT PRIMARY KEY, invoice_no TEXT, invoice_date TEXT, chassis TEXT, engine TEXT,
+  colour TEXT, ex_showroom INT, financer TEXT);
 CREATE TABLE IF NOT EXISTS joblog(
   id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT, dealer TEXT, summary TEXT, at TEXT);
 """
 TABLES = ["policies", "claims", "callbacks", "approvals", "inspections", "services", "messages",
-          "consents", "rides", "loans", "leads", "calls", "joblog"]
+          "consents", "rides", "loans", "leads", "calls", "joblog", "invoices"]
 
 
 def now():

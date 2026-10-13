@@ -79,16 +79,62 @@ elif sec == "Dealer store":
     st.write(", ".join(iname(k) for k in INSURERS))
 
 elif sec == "Issue policy":
-    st.caption("New or pre-owned vehicle at the time of sale. Steps: customer → vehicle → quotes → payment → handover.")
+    st.caption("New or pre-owned vehicle at the time of sale. Steps: invoice → details → quotes → payment → handover.")
+    from invoice import extract_text, parse_invoice, sample_invoice_pdf
+
+    # ---- 1. Issue from the vehicle invoice -------------------------------------------
+    st.subheader("1 · Upload the vehicle invoice")
+    iv = st.session_state.get(f"inv_{dealer}", {})
+    u1, u2 = st.columns([3, 2])
+    up = u1.file_uploader("Sale invoice (PDF)", type=["pdf", "txt", "jpg", "jpeg", "png"], key=f"up_{dealer}")
+    u2.write("No invoice handy?")
+    u2.download_button("Download a sample invoice", sample_invoice_pdf(D[0], D[2], oem, OEMS[oem][0][0], OEMS[oem][0][2]),
+                       f"sample-invoice-{dealer}.pdf", "application/pdf")
+    if up is not None and st.session_state.get(f"inv_name_{dealer}") != up.name + str(up.size):
+        try:
+            iv = parse_invoice(extract_text(up.name, up.getvalue()))
+            st.session_state[f"inv_{dealer}"] = iv
+            st.session_state[f"inv_name_{dealer}"] = up.name + str(up.size)
+            st.session_state.pop(f"cust_{dealer}", None); st.session_state.pop(f"mob_{dealer}", None)
+            st.session_state.pop(f"model_{dealer}", None)
+        except ValueError as e:
+            st.error(str(e))
+    if iv:
+        if iv.get("oem") and iv["oem"] != oem:
+            st.warning(f"This invoice is for a {iv['oem']} vehicle, but you're signed in as a {oem} dealer.")
+        got = [k for k in ("invoice_no", "invoice_date", "customer", "mobile", "model_matched", "colour",
+                           "chassis", "engine", "ex_showroom", "financer") if iv.get(k)]
+        st.success(f"Read {len(got)} details from the invoice. Quotes below are filled in automatically; "
+                   "check and correct anything before issuing.")
+        if iv["missing"]:
+            st.warning("Couldn't find: " + ", ".join(iv["missing"]) + ". Enter these by hand.")
+        show = {k: iv.get(k, "–") for k in ("invoice_no", "invoice_date", "chassis", "engine", "colour", "financer")}
+        st.dataframe(pd.DataFrame([show]), hide_index=True, width="stretch")
+    if iv and st.button("Clear invoice"):
+        for k in (f"inv_{dealer}", f"inv_name_{dealer}", f"cust_{dealer}", f"mob_{dealer}", f"model_{dealer}"):
+            st.session_state.pop(k, None)
+        st.rerun()
+
+    # ---- 2. Details (pre-filled from the invoice, editable) ---------------------------
+    st.subheader("2 · Check details")
+    models = [m for m, _, _ in OEMS[oem]]
+    if iv.get("model_matched") in models and f"model_{dealer}" not in st.session_state:
+        st.session_state[f"model_{dealer}"] = iv["model_matched"]
+    st.session_state.setdefault(f"cust_{dealer}", iv.get("customer", "Test Customer"))
+    st.session_state.setdefault(f"mob_{dealer}", iv.get("mobile", "9876543210"))
     c1, c2 = st.columns(2)
-    name = c1.text_input("Customer name", "Test Customer")
-    mobile = c1.text_input("Mobile", "9876543210")
+    name = c1.text_input("Customer name", key=f"cust_{dealer}")
+    mobile = c1.text_input("Mobile", key=f"mob_{dealer}")
     pa = c1.checkbox("PA owner-driver cover", True)
     consent = c1.checkbox("Customer consented to policy servicing messages", True)
-    model = c2.selectbox("Model", [m for m, _, _ in OEMS[oem]])
+    model = c2.selectbox("Model", models, key=f"model_{dealer}")
     vtype = c2.radio("Vehicle", ["New", "Pre-owned"], horizontal=True)
     cc, price = model_info(oem, model)
+    if iv.get("ex_showroom") and iv.get("model_matched") == model:
+        price = iv["ex_showroom"]
+        c2.caption(f"Ex-showroom price from invoice: {inr(price)} (used for IDV)")
     age, ncb = 0, 0
+    st.subheader("3 · Quotes from all insurers")
     if vtype == "Pre-owned":
         age = c2.slider("Vehicle age (years)", 1, 8, 2)
         ncb = c2.selectbox("NCB %", [0, 20, 25, 35, 45, 50])
@@ -104,6 +150,10 @@ elif sec == "Issue policy":
         qq = quotes.set_index("insurer").loc[ins]
         pno = db.add_policy(dealer, ins, name, mobile, oem, model, cc, vtype, date.today().year - age,
                             int(qq.idv), int(qq.total), date.today(), "Dealer console", pay)
+        if iv:
+            db.run("INSERT INTO invoices VALUES(?,?,?,?,?,?,?,?)",
+                   (pno, iv.get("invoice_no"), iv.get("invoice_date"), iv.get("chassis"), iv.get("engine"),
+                    iv.get("colour"), iv.get("ex_showroom"), iv.get("financer")))
         if vtype == "Pre-owned":
             db.run("INSERT INTO inspections(dealer,insurer,customer,model,photos,status,created_at) VALUES(?,?,?,?,?,?,?)",
                    (dealer, ins, name, model, 6, "Pending", db.now()))
@@ -119,6 +169,7 @@ elif sec == "Repository":
     to = c2.date_input("To", date.today() + timedelta(days=400))
     src = c3.multiselect("Source", ["Dealer console", "Rider app"], ["Dealer console", "Rider app"])
     df = pol[(pol.start_date >= frm.isoformat()) & (pol.start_date <= to.isoformat()) & pol.source.isin(src)]
+    df = df.merge(db.q("SELECT policy_no, invoice_no, chassis, engine FROM invoices"), how="left", on="policy_no")
     s = st.text_input("Search name, mobile or policy no.")
     if s:
         df = df[df.apply(lambda r: s.lower() in f"{r.customer} {r.mobile} {r.policy_no}".lower(), axis=1)]
