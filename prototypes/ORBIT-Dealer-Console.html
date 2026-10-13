@@ -527,16 +527,31 @@ const REPO=[
  {no:'POL-19-000087',cust:'[Customer E]',veh:'Classic 350 · new',sale:'New vehicle',ins:'Insurer B',src:'Dealer console',by:'[CRE 3]',d:daysAgo(2400),ver:1,app:false,hist:['v1 Issued at delivery']}];
 S.rf={from:'',to:'',src:'all',q:''};S.rsel=null;
 function stepsBar(n){const L=['Sale and vehicle','Rider KYC','Cover','Insurer OTP and payment','Issued and handed over'];return `<div class="steps">${L.map((l,i)=>`<span class="${i+1<n?'d':i+1===n?'c':''}">${i+1} ${l}</span>`).join('')}</div>`}
+const INV_SAMPLE={no:'INV/2610/0077',cust:'Rahul Verma',mob:'98110 45672',model:'Royal Enfield Classic 350 Chrome',colour:'Stealth Black',chassis:'ME3J3C5F1RC012345',engine:'J3A5FC123456',price:193000,fin:'Pragati NBFC',rto:'Lucknow'};
+function inr(n){return Math.round(n).toLocaleString('en-IN')}
+function quoteFor(price,k){const idv=price*0.95,od=idv*0.0176*[1,0.94,1.06][k],tp=1366*5,pa=375;return (od+tp+pa)*1.18}
+function invoiceBlock(I){
+ if(I.reading)return `<div class="detect"><b>Reading invoice…</b> ${I.reading}<br><span class="note">Extracting customer, vehicle, chassis, engine and price</span></div>`;
+ if(!I.inv)return `<p>Upload the vehicle sale invoice. ORBIT reads it and fills in the customer, vehicle and quotes from every insurer.</p>
+ <div class="form"><label class="f" for="iinv">Sale invoice (PDF or photo)<input type="file" id="iinv" accept=".pdf,image/*"></label><div style="display:flex;align-items:flex-end"><button class="btn g" id="isample">Use sample invoice</button></div></div>`;
+ const v=I.inv;return `<div class="detect"><b>Read from invoice ${v.no}</b> · ${v.file}<div class="tbl"><table style="min-width:420px">
+ <tr><th>Field</th><th>Value</th></tr><tr><td>Customer</td><td>${v.cust} · +91 ${v.mob}</td></tr><tr><td>Vehicle</td><td>${v.model} · ${v.colour}</td></tr>
+ <tr><td>Chassis no.</td><td class="n">${v.chassis}</td></tr><tr><td>Engine no.</td><td class="n">${v.engine}</td></tr><tr><td>Ex-showroom price</td><td class="n">₹${inr(v.price)}</td></tr>
+ <tr><td>Hypothecation</td><td>${v.fin}</td></tr><tr><td>RTO</td><td>${v.rto} · new registration</td></tr></table></div>
+ <span class="tag">10 fields read</span> <span class="tag b">Quotes from all insurers ready</span> <button class="btn g" id="ireplace">Use a different invoice</button></div>
+ <p class="note">Prototype: any uploaded file shows sample data. The live system reads text PDFs directly and uses OCR for scanned or photographed invoices.</p>`}
+function readInvoice(name){const I=S.iss;I.reading=name;render();setTimeout(()=>{I.reading=null;I.inv=Object.assign({file:name},INV_SAMPLE);render();toast('Invoice read · quotes filled in')},900)}
+document.addEventListener('change',e=>{if(e.target.id==='iinv'&&e.target.files[0])readInvoice(e.target.files[0].name)});
 function issueView(){const I=S.iss,a=S.addons;const ad=[['zd','Zero depreciation'],['ep','Engine protect'],['rti','Return to invoice'],['pa','Standalone PA'],['rsa','RSA plan (ORBIT)']];
  const nav=(back,next,label)=>`<div style="display:flex;gap:8px;flex-wrap:wrap">${back?`<button class="btn g" data-istep="${back}">Back</button>`:''}${next?`<button class="btn a" data-istep="${next}">${label}</button>`:''}</div>`;
  let body='';
  if(I.step===1)body=`<div class="panel"><h2>Type of sale</h2><div class="chips"><button class="chip" data-sale="new" aria-pressed="${I.sale==='new'}">New vehicle</button><button class="chip" data-sale="used" aria-pressed="${I.sale==='used'}">Pre-owned vehicle</button></div>
- ${I.sale==='new'?`<p>Royal Enfield Classic 350 Chrome · picked from DMS sales invoice<br>Chassis and engine number filled · IDV ₹[x] · RTO Lucknow · new registration</p><p><span class="tag">DMS invoice matched</span></p>`:
+ ${I.sale==='new'?invoiceBlock(I):
  `<div class="form"><label class="f" for="ireg">Registration, chassis or old policy number<input type="text" id="ireg" value="${I.reg}" placeholder="UP32 AB 1234"></label><div style="display:flex;align-items:flex-end"><button class="btn" id="idetect">Detect</button></div></div>
  ${I.detected?`<div class="detect"><b>Detected</b> · Hunter 350 · 2022 · from VAHAN<br>Previous policy: Insurer B, expires in 4 months · NCB 25% transferable to new owner<br><span class="note">Ownership transfer: previous policy is transferred or cancelled; new owner's KYC is mandatory. If the old policy has lapsed, a break-in inspection is booked.</span></div>`:'<p class="note">Type one detail; no scanning needed.</p>'}`}</div>${nav(0,2,'Next: rider KYC')}`;
- if(I.step===2)body=`<div class="panel"><h2>Rider KYC</h2><p><span class="tag">CKYC fetched</span> <span class="tag">Aadhaar OTP verified</span> <span class="tag">Mobile matches VAHAN</span></p><p>[Customer name] · mobile [+91 XXXXX XXXXX] · email [x]<br>PA nominee: [name], [relation]</p><p class="note">Consent for policy issuance recorded. Marketing consent is asked separately in the customer app.</p></div>${nav(1,3,'Next: cover')}`;
+ if(I.step===2)body=`<div class="panel"><h2>Rider KYC</h2><p><span class="tag">CKYC fetched</span> <span class="tag">Aadhaar OTP verified</span> <span class="tag">Mobile matches VAHAN</span></p><p>${I.inv?I.inv.cust+' · mobile +91 '+I.inv.mob+' · <span class="tag b">from invoice</span>':'[Customer name] · mobile [+91 XXXXX XXXXX]'} · email [x]<br>PA nominee: [name], [relation]</p><p class="note">Consent for policy issuance recorded. Marketing consent is asked separately in the customer app.</p></div>${nav(1,3,'Next: cover')}`;
  if(I.step===3)body=`<div class="panel"><h2>Cover builder · ${I.sale==='new'?'1Y OD + 5Y TP':'1Y comprehensive'}</h2><div class="tbl"><table style="min-width:420px"><tr><th>Insurer</th><th>Premium</th><th>Back on road</th><th></th></tr>
- ${['A','B','C'].map((i,k)=>`<tr><td>Insurer ${i}</td><td class="n">₹[x]</td><td class="n">${[5,8,11][k]} d</td><td>${S.chosen===i?'<span class="tag b">Chosen</span>':`<button class="btn g" data-choose="${i}">Choose</button>`}</td></tr>`).join('')}</table></div>
+ ${I.inv?`<p class="note"><span class="tag">Auto-filled from invoice</span> IDV ₹${inr(Math.round(I.inv.price*0.95))} (95% of ex-showroom ₹${inr(I.inv.price)}) · ${I.inv.model} · chassis ${I.inv.chassis}</p>`:''}${['A','B','C'].map((i,k)=>`<tr><td>Insurer ${i}</td><td class="n">${I.inv?'₹'+inr(quoteFor(I.inv.price,k)):'₹[x]'}</td><td class="n">${[5,8,11][k]} d</td><td>${S.chosen===i?'<span class="tag b">Chosen</span>':`<button class="btn g" data-choose="${i}">Choose</button>`}</td></tr>`).join('')}</table></div>
  <div class="chips">${ad.map(([k,l])=>`<button class="chip" data-addon="${k}" aria-pressed="${a[k]}">${l}</button>`).join('')}</div>
  <p class="note">Bima Sugam option shown to the customer and acknowledged. Commission disclosed on the quote.</p></div>${nav(2,4,'Next: insurer OTP and payment')}`;
  if(I.step===4)body=`<div class="panel"><h2>Insurer verification and payment</h2><p>Insurer ${S.chosen} sent an OTP to the customer's mobile: <span class="tag">Verified</span></p>
@@ -587,8 +602,8 @@ function cbView(){const open=CBS.filter(c=>c.st!=='closed');$('#cbn')&&( $('#cbn
 V.repo=repoView;V.callbacks=cbView;
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const I=S.iss;
  if(b.dataset.sale){I.sale=b.dataset.sale;I.detected=false;render();return}
- if(b.id==='idetect'){I.reg=$('#ireg').value;I.detected=true;render();toast('Vehicle and previous policy found');return}
- if(b.dataset.istep){const n=+b.dataset.istep;if(n===5&&!I.issued){const p={no:'POL-24-00'+(1900+REPO.length),cust:'[New customer]',veh:(I.sale==='new'?'Classic 350 · new':'Hunter 350 · pre-owned'),sale:I.sale==='new'?'New vehicle':'Pre-owned',ins:'Insurer '+S.chosen,src:'Dealer console',by:'[CRE 1]',d:new Date(),ver:1,app:false,hist:['v1 Issued at '+(I.sale==='new'?'delivery':'resale')]};REPO.unshift(p);I.issued=p;toast('Policy issued and saved to repository')}I.step=n;render();window.scrollTo(0,0);return}
+ if(b.id==='isample'){readInvoice('sample-invoice.pdf');return}if(b.id==='ireplace'){I.inv=null;render();return}if(b.id==='idetect'){I.reg=$('#ireg').value;I.detected=true;render();toast('Vehicle and previous policy found');return}
+ if(b.dataset.istep){const n=+b.dataset.istep;if(n===5&&!I.issued){const p={no:'POL-24-00'+(1900+REPO.length),cust:(I.inv&&I.sale==='new'?I.inv.cust:'[New customer]'),veh:(I.sale==='new'?(I.inv?'Classic 350 · new · '+I.inv.chassis:'Classic 350 · new'):'Hunter 350 · pre-owned'),sale:I.sale==='new'?'New vehicle':'Pre-owned',ins:'Insurer '+S.chosen,src:'Dealer console',by:'[CRE 1]',d:new Date(),ver:1,app:false,hist:['v1 Issued at '+(I.sale==='new'?(I.inv?'delivery, from invoice '+I.inv.no:'delivery'):'resale')]};REPO.unshift(p);I.issued=p;toast('Policy issued and saved to repository')}I.step=n;render();window.scrollTo(0,0);return}
  if(b.dataset.paymode){I.pay=b.dataset.paymode;I.paid=false;render();return}
  if(b.id==='ipaid'){I.paid=true;if(I.pay==='dealer')toast('Receipt issued; insurer paid from dealer float');render();return}
  if(b.id==='iapp'){I.appSent=true;render();toast('App download link sent');return}
