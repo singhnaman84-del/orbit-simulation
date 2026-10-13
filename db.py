@@ -53,11 +53,29 @@ CREATE TABLE IF NOT EXISTS calls(
 CREATE TABLE IF NOT EXISTS invoices(
   policy_no TEXT PRIMARY KEY, invoice_no TEXT, invoice_date TEXT, chassis TEXT, engine TEXT,
   colour TEXT, ex_showroom INT, financer TEXT);
+CREATE TABLE IF NOT EXISTS vehicle_checks(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, policy_no TEXT, dealer TEXT, mobile TEXT, agency TEXT,
+  odometer INT, score INT, health INT, findings TEXT, status TEXT, booked_by TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS vas_orders(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, policy_no TEXT, dealer TEXT, mobile TEXT, customer TEXT,
+  kind TEXT, plan TEXT, price INT, health INT, check_id INT, sold_via TEXT, at TEXT);
 CREATE TABLE IF NOT EXISTS joblog(
   id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT, dealer TEXT, summary TEXT, at TEXT);
 """
 TABLES = ["policies", "claims", "callbacks", "approvals", "inspections", "services", "messages",
-          "consents", "rides", "loans", "leads", "calls", "joblog", "invoices"]
+          "consents", "rides", "loans", "leads", "calls", "joblog", "invoices", "vehicle_checks", "vas_orders"]
+
+
+def vehicle_facts(policy_no):
+    """Age, claims and dealer services for the vehicle on a policy."""
+    p = q("SELECT * FROM policies WHERE policy_no=?", (policy_no,)).iloc[0]
+    age = max(0, today().year - int(p.reg_year))
+    claims = int(q("SELECT COUNT(*) n FROM claims c JOIN policies x USING(policy_no) WHERE x.mobile=?",
+                   (p.mobile,)).n[0])
+    yr = (today() - timedelta(days=365)).isoformat()
+    svc = int(q("SELECT COUNT(*) n FROM services WHERE mobile=? AND status='Done' AND slot>=?",
+                (p.mobile, yr)).n[0])
+    return p, age, claims, svc
 
 
 def now():

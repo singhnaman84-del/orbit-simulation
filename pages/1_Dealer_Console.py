@@ -20,12 +20,12 @@ ROLE_SECTIONS = {
     "Dealer principal": None,
     "Insurance executive": ["Mission control", "Issue policy", "Repository", "Renewals & calling", "Call-backs",
                             "WhatsApp", "AI autopilot", "AI agent"],
-    "Service advisor": ["Mission control", "Service bookings", "Workshop capture", "Claims", "Call-backs"],
+    "Service advisor": ["Mission control", "Service bookings", "Value-added services", "Workshop capture", "Claims", "Call-backs"],
     "Accounts": ["Mission control", "Float & remittance", "Billing", "Loss ratio", "Repository"],
 }
 ALL = ["Mission control", "Dealer store", "Issue policy", "Repository", "Renewals & calling", "Call-backs",
        "Claims", "Service bookings", "Workshop capture", "WhatsApp", "Persistency", "Loss ratio",
-       "Float & remittance", "AI autopilot", "AI agent", "Billing"]
+       "Float & remittance", "Value-added services", "AI autopilot", "AI agent", "Billing"]
 sec = st.sidebar.radio("Section", ROLE_SECTIONS[role] or ALL)
 
 D = DEALERS[dealer]
@@ -378,6 +378,24 @@ elif sec == "AI agent":
     else:
         ans = "I can answer about renewals, loss ratio, remittance, call-backs and models."
     st.info("🤖 " + ans)
+
+elif sec == "Value-added services":
+    import vas_ui
+    st.caption("Sell service packages and extended warranty to customers whose vehicles you insured.")
+    vo = db.q("SELECT kind, COUNT(*) n, SUM(price) rev FROM vas_orders WHERE dealer=? GROUP BY kind", (dealer,))
+    c = st.columns(3)
+    c[0].metric("Service packages sold", int(vo[vo.kind == "Service package"].n.sum()))
+    c[1].metric("Extended warranties sold", int(vo[vo.kind == "Extended warranty"].n.sum()))
+    c[2].metric("VAS revenue", inr(vo.rev.sum()))
+    bk = db.q("SELECT id, policy_no, agency, status, at FROM vehicle_checks WHERE dealer=? AND status='Booked'", (dealer,))
+    if len(bk):
+        st.info(f"{len(bk)} third-party inspection(s) awaiting reports.")
+    act = pol[pol.end_date >= T].sort_values("start_date", ascending=False)
+    pick = st.selectbox("Customer", act.policy_no,
+                        format_func=lambda x: f"{act.set_index('policy_no').customer[x]} · {act.set_index('policy_no').model[x]} · {x}")
+    vas_ui.render(pick, "Dealer console", f"d_{dealer}")
+    with st.expander("All VAS sales"):
+        st.dataframe(db.q("SELECT * FROM vas_orders WHERE dealer=? ORDER BY id DESC", (dealer,)), hide_index=True, width="stretch")
 
 elif sec == "Billing":
     plan = st.selectbox("Plan", list(PLANS), index=1)

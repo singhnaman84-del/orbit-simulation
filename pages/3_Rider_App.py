@@ -52,7 +52,7 @@ if cons.get("Ride reminders"):
 
 st.title(f"📱 {D[0]}")
 st.caption(f"Hi {p.customer.split()[0]} · {p.oem} {p.model}")
-sec = st.radio("Menu", ["Home", "Renew & pay", "Insta loan", "Claim", "Service", "Rides", "Call-back", "Inbox", "Privacy"],
+sec = st.radio("Menu", ["Home", "Renew & pay", "Insta loan", "Claim", "Service", "Packages & warranty", "Rides", "Call-back", "Inbox", "Privacy"],
                horizontal=True, label_visibility="collapsed")
 
 if sec == "Home":
@@ -202,6 +202,11 @@ elif sec == "Inbox":
     if reply:
         db.log_msg(p.dealer, mobile, reply, direction="in")
         st.rerun()
+
+elif sec == "Packages & warranty":
+    import vas_ui
+    st.caption(f"Prepaid service packages and extended warranty from {D[0]}.")
+    vas_ui.render(p.policy_no, "Customer app", f"r_{mobile}")
 
 elif sec == "Privacy":
     st.write("**Consent per purpose**")
