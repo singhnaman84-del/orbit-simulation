@@ -8,8 +8,8 @@ st.title("🧩 Full prototypes")
 st.caption("The complete clickable ORBIT prototypes, exactly as in the design artifacts (every screen and feature). "
            "These run on their own sample data; the other pages run on the shared live database.")
 P = Path(__file__).parent.parent / "prototypes"
-which = st.radio("Prototype", ["Dealer console", "Insurer portal", "Rider app"], horizontal=True)
-f = {"Dealer console": "ORBIT-Dealer-Console.html", "Insurer portal": "ORBIT-Insurer-Portal.html",
+which = st.radio("Prototype", ["Central console", "Dealer console", "Insurer portal", "Rider app"], horizontal=True)
+f = {"Central console": "ORBIT-Central-Console.html", "Dealer console": "ORBIT-Dealer-Console.html", "Insurer portal": "ORBIT-Insurer-Portal.html",
      "Rider app": "ORBIT-Rider-App.html"}[which]
 html = (P / f).read_text(encoding="utf-8")
 components.html(html, height=900 if which != "Rider app" else 860, scrolling=True)
