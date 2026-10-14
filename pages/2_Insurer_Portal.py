@@ -37,7 +37,7 @@ if sec == "Overview":
 
 elif sec == "Approvals":
     ap = db.q("SELECT * FROM approvals WHERE insurer=? AND raised_by='Dealer' ORDER BY status, id DESC", (ins,))
-    st.caption("Discount requests, large claim estimates and endorsements raised by dealers.")
+    st.caption("Quote-match requests, discount requests, large claim estimates and endorsements raised by dealers.")
     pend = ap[ap.status == "Pending"]
     if pend.empty:
         st.write("No pending approvals.")
@@ -45,9 +45,17 @@ elif sec == "Approvals":
         c1, c2, c3 = st.columns([5, 1, 1])
         c1.write(f"**{r.kind}** · {dname(r.dealer)} · {r.policy_no} · {r.detail} · {inr(r.amount)}")
         if c2.button("Approve", key=f"y{r.id}"):
-            db.run("UPDATE approvals SET status='Approved' WHERE id=?", (int(r.id),)); st.rerun()
+            if r.kind == "Quote match":
+                import price_intel; price_intel.resolve(int(r.id), True)
+            else:
+                db.run("UPDATE approvals SET status='Approved' WHERE id=?", (int(r.id),))
+            st.rerun()
         if c3.button("Decline", key=f"n{r.id}"):
-            db.run("UPDATE approvals SET status='Declined' WHERE id=?", (int(r.id),)); st.rerun()
+            if r.kind == "Quote match":
+                import price_intel; price_intel.resolve(int(r.id), False)
+            else:
+                db.run("UPDATE approvals SET status='Declined' WHERE id=?", (int(r.id),))
+            st.rerun()
     st.dataframe(ap[ap.status != "Pending"], hide_index=True, width="stretch")
 
 elif sec == "Inspections":

@@ -61,4 +61,20 @@ def capture_form(dealer, key):
                    "source,evidence,outcome,at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                    (dealer, ins, model, DEALERS[dealer][2], ch, comp_ins, ours, theirs, src,
                     "Screenshot" if shot else "None", out, db.now()))
-            st.success("Saved.")
+            if src == "Quote match (customer)" and out == "Pending" and theirs < ours:
+                db.run("INSERT INTO approvals(kind,dealer,insurer,policy_no,detail,amount,raised_by,status,created_at)"
+                       " VALUES(?,?,?,?,?,?,?,?,?)", ("Quote match", dealer, ins, model,
+                       f"Match {INSURERS[comp_ins][0]} via {ch} at {inr(theirs)} (ours {inr(ours)})",
+                       ours - theirs, "Dealer", "Pending", db.now()))
+                st.success("Saved and sent to the insurer for quote-match approval.")
+            else:
+                st.success("Saved.")
+
+
+def resolve(approval_id, approved):
+    """Insurer decision on a quote match: update the approval and the matching price case."""
+    a = db.q("SELECT * FROM approvals WHERE id=?", (approval_id,)).iloc[0]
+    db.run("UPDATE approvals SET status=? WHERE id=?", ("Approved" if approved else "Declined", approval_id))
+    db.run("UPDATE price_obs SET outcome=? WHERE id=(SELECT MAX(id) FROM price_obs WHERE dealer=? AND insurer=? "
+           "AND model=? AND source='Quote match (customer)' AND outcome='Pending')",
+           ("Matched & retained" if approved else "Lost", a.dealer, a.insurer, a.policy_no))
