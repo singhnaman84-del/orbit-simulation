@@ -682,12 +682,32 @@ function priceView(){const g=r=>(r.ours-r.theirs)/r.ours*100,inr=n=>'₹'+n.toLo
  <label class="f" for="piev">Evidence<input type="file" id="piev" accept="image/*,.pdf"></label></div>
  <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn a" id="pisave">Save${piF.src==='Quote match'?' and send quote-match request to insurer':''}</button></div>
  <p class="note">Field audits use authorised test profiles only, never a real customer's details without consent.</p></div>
+ <div class="panel"><h2>AI: reverse-calculate discount and add-on rates</h2>
+ <p class="note">Attach the other channel's quote. ORBIT reads the breakdown and works back to the OD discount and add-on rates the insurer is giving there, then compares them with the dealer quote.</p>
+ <div class="form"><label class="f" for="rvfile">Other channel's quote (PDF or screenshot)<input type="file" id="rvfile" accept="image/*,.pdf"></label><div style="display:flex;align-items:flex-end"><button class="btn g" id="rvsample">Use sample quote</button></div></div>
+ ${RV?rvTable():''}</div>
  <div class="cols"><div class="panel"><h2>Gap by our insurer</h2><div class="tbl"><table style="min-width:0"><tr><th>Insurer</th><th>Cases</th><th>Avg gap</th><th>Lost</th></tr>${by.map(b=>`<tr><td>${b.i}</td><td class="n">${b.n}</td><td><span class="tag ${b.gap>8?'w':b.gap>5?'b':''}">${b.gap.toFixed(1)}%</span></td><td class="n">${b.lost}</td></tr>`).join('')}</table></div></div>
  <div class="panel"><h2>Gap by competitor channel</h2><div class="tbl"><table style="min-width:0"><tr><th>Channel</th><th>Cases</th><th>Avg gap</th></tr>${chs.map(c=>`<tr><td>${c.c}</td><td class="n">${c.n}</td><td class="n">${c.gap.toFixed(1)}%</td></tr>`).join('')}</table></div></div></div>
  <div class="panel"><h2>Cases</h2><div class="tbl"><table><tr><th>Date</th><th>Source</th><th>Model</th><th>Insurer</th><th>Our price</th><th>Other channel price</th><th>Gap</th><th>Evidence</th><th>Status</th><th></th></tr>
  ${PI.map((r,k)=>`<tr><td>${r.d}</td><td>${r.src}</td><td>${r.model}</td><td>${r.ins}</td><td><b>${inr(r.ours)}</b><br><span class="note">via dealer (ORBIT)</span></td><td><b>${inr(r.theirs)}</b><br><span class="note">via ${r.ch}</span></td><td class="n">${g(r).toFixed(1)}%</td><td>${r.ev}</td><td><span class="tag ${/Pending/.test(r.st)?'b':/Approved/.test(r.st)?'':/lost|Lost/.test(r.st)?'w':''}">${r.st}</span></td><td>${/Pending/.test(r.st)?`<button class="btn g" data-pisim="${k}">Prototype: insurer approves</button>`:''}</td></tr>`).join('')}</table></div>
  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Evidence pack (CSV and screenshots) prepared for insurers">Download evidence pack</button></div></div>`}
 V.price=priceView;
+let RV=null;
+function rvTable(){const q=RV,base=q.gross/q.idv*100,d=q.disc/q.gross*100,our={disc:15,zd:.48,ep:null,rsa:null};
+ const rows=[['Base OD rate (% of IDV)',base.toFixed(2)+'%','1.76%'],['Implied OD discount',d.toFixed(1)+'%',our.disc.toFixed(1)+'%'],['Effective OD rate after discount',((q.gross-q.disc)/q.idv*100).toFixed(2)+'%',(1.76*.85).toFixed(2)+'%'],['NCB applied',q.ncb+'%',q.ncb+'%'],
+  ['Zero depreciation rate (% of IDV)',(q.zd/q.idv*100).toFixed(3)+'% (₹'+q.zd+')',our.zd.toFixed(3)+'%'],['Engine protect rate (% of IDV)',(q.ep/q.idv*100).toFixed(3)+'% (₹'+q.ep+')','Not in dealer quote'],['Roadside assistance',(q.rsa/q.idv*100).toFixed(3)+'% (₹'+q.rsa+')','Not in dealer quote']];
+ const extra=Math.round(q.gross*(d-our.disc)/100);
+ return `<p><span class="tag">Read from ${q.file}</span> <span class="tag b">${q.ins} · ${q.ch}</span> IDV ₹${q.idv.toLocaleString('en-IN')} · total ₹${q.total.toLocaleString('en-IN')}</p>
+ <div class="tbl"><table style="min-width:0"><tr><th>Component</th><th>Other channel (reverse-calculated)</th><th>Dealer quote</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('')}</table></div>
+ <div class="panel" style="border-color:var(--accent)"><span><b>AI:</b> ${q.ins} is giving about ${d.toFixed(0)}% OD discount through ${q.ch.toLowerCase()}, ${(d-our.disc).toFixed(0)} points more than on the dealer channel, and prices zero depreciation lower (${(q.zd/q.idv*100).toFixed(2)}% vs ${our.zd}% of IDV). Matching needs an extra OD discount of about ₹${extra.toLocaleString('en-IN')}.</span>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn a" id="rvsend">Send quote-match request with this breakdown</button></div></div>
+ <p class="note">Prototype: any attached file shows sample figures. The live system reads text PDFs directly and uses OCR for screenshots; dealer-side rates come from the insurer's rating API for the same vehicle.</p>`}
+function rvRead(name){RV={file:name,ins:piF.ins,ch:piF.ch,idv:183350,gross:3227,disc:1129,ncb:20,zd:770,ep:202,rsa:99,total:5298};render();toast('Quote read · rates reverse-calculated')}
+document.addEventListener('change',e=>{if(e.target.id==='rvfile'&&e.target.files[0])rvRead(e.target.files[0].name)});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.id==='rvsample'){rvRead('sample-other-channel-quote.pdf');return}
+ if(b.id==='rvsend'){const ours=12310,theirs=Math.round(ours-RV.gross*(RV.disc/RV.gross*100-15)/100*1.18);PI.unshift({d:'Today',src:'Quote match',model:piF.model,ins:RV.ins,ours,ch:RV.ch,cins:RV.ins,theirs,ev:'Quote PDF + AI breakdown',st:'Pending with insurer'});RV=null;render();toast('Quote-match request sent to '+piF.ins+' with the rate breakdown');return}});
+
 document.addEventListener('change',e=>{const m={pisrc:'src',pimodel:'model',piins:'ins',pich:'ch',picins:'cins'};if(m[e.target.id]){piF[m[e.target.id]]=e.target.value;if(e.target.id==='pisrc')render()}if(e.target.id==='piours')piF.ours=+e.target.value;if(e.target.id==='pitheirs')piF.theirs=+e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
  if(b.id==='pisave'){piF.ours=+$('#piours').value;piF.theirs=+$('#pitheirs').value;const qm=piF.src==='Quote match'&&piF.theirs<piF.ours;

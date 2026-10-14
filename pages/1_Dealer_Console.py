@@ -401,6 +401,8 @@ elif sec == "Price intelligence":
     import price_intel as pi
     st.caption("Same insurer, different channel: where an insurer sells cheaper elsewhere than through the dealer. No automated scraping.")
     pi.capture_form(dealer, f"pi_{dealer}")
+    with st.expander("AI: reverse-calculate discount and add-on rates from an attached quote", expanded=True):
+        pi.reverse_ui(dealer, f"rv_{dealer}")
     df = pi.gaps("dealer=?", (dealer,))
     if len(df):
         c = st.columns(3)
