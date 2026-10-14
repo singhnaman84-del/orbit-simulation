@@ -59,11 +59,14 @@ CREATE TABLE IF NOT EXISTS vehicle_checks(
 CREATE TABLE IF NOT EXISTS vas_orders(
   id INTEGER PRIMARY KEY AUTOINCREMENT, policy_no TEXT, dealer TEXT, mobile TEXT, customer TEXT,
   kind TEXT, plan TEXT, price INT, health INT, check_id INT, sold_via TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS price_obs(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, dealer TEXT, insurer TEXT, model TEXT, city TEXT, channel TEXT,
+  comp_insurer TEXT, our_premium INT, comp_premium INT, source TEXT, evidence TEXT, outcome TEXT, at TEXT);
 CREATE TABLE IF NOT EXISTS joblog(
   id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT, dealer TEXT, summary TEXT, at TEXT);
 """
 TABLES = ["policies", "claims", "callbacks", "approvals", "inspections", "services", "messages",
-          "consents", "rides", "loans", "leads", "calls", "joblog", "invoices", "vehicle_checks", "vas_orders"]
+          "consents", "rides", "loans", "leads", "calls", "joblog", "invoices", "vehicle_checks", "vas_orders", "price_obs"]
 
 
 def vehicle_facts(policy_no):
@@ -169,6 +172,7 @@ def seed(n=260, force=False):
              r.dealer, r.dealer, when.isoformat(timespec="seconds"),
              when.isoformat(timespec="seconds"), "Open"))
     _seed_extras(rnd)
+    import price_intel; price_intel.seed(rnd)
 
 
 def _seed_extras(rnd):

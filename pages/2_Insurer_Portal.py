@@ -13,7 +13,7 @@ dname = lambda k: DEALERS[k][0]
 
 ins = st.sidebar.selectbox("Insurer", list(INSURERS), format_func=lambda k: INSURERS[k][0])
 sec = st.sidebar.radio("Section", ["Overview", "Approvals", "Inspections", "Claims", "Fraud signals",
-                                   "Loss ratio by dealer", "Persistency", "Benchmarks", "Telematics",
+                                   "Loss ratio by dealer", "Persistency", "Benchmarks", "Price intelligence", "Telematics",
                                    "Renewals due", "Billing & remittance", "Data disputes"])
 st.title(f"🏢 {INSURERS[ins][0]}")
 T = date.today().isoformat()
@@ -116,6 +116,20 @@ elif sec == "Benchmarks":
     b = lr.merge(ps[["insurer", "persistency_%"]], how="left")
     b["insurer"] = b.insurer.apply(lambda k: INSURERS[k][0] if k == ins else "Peer")
     st.dataframe(b[["insurer", "policies", "written", "loss_ratio_%", "persistency_%"]], hide_index=True, width="stretch")
+
+elif sec == "Price intelligence":
+    import price_intel as pi
+    st.caption("Evidence from dealers in the ORBIT network: where your quotes lose to other channels.")
+    df = pi.gaps("insurer=?", (ins,))
+    if df.empty:
+        st.write("No cases yet.")
+    else:
+        c = st.columns(3)
+        c[0].metric("Cases", len(df)); c[1].metric("Avg gap", f"{df['gap_%'].mean():.1f}%")
+        c[2].metric("Lost on price", int((df.outcome == "Lost").sum()))
+        st.subheader("By competitor channel"); st.dataframe(pi.summary(df, "channel"), hide_index=True, width="stretch")
+        st.subheader("By model and city"); st.dataframe(pi.summary(df, ["model", "city"]).head(15), hide_index=True, width="stretch")
+        st.download_button("Download evidence pack (CSV)", df.to_csv(index=False), f"price-evidence-{ins}.csv")
 
 elif sec == "Telematics":
     st.caption("Aggregate ride scores of your policyholders who consented to sensor scoring.")
