@@ -399,13 +399,13 @@ elif sec == "Value-added services":
 
 elif sec == "Price intelligence":
     import price_intel as pi
-    st.caption("Competitor prices from quote matches, field audits and lost renewals. No automated scraping.")
+    st.caption("Same insurer, different channel: where an insurer sells cheaper elsewhere than through the dealer. No automated scraping.")
     pi.capture_form(dealer, f"pi_{dealer}")
     df = pi.gaps("dealer=?", (dealer,))
     if len(df):
         c = st.columns(3)
         c[0].metric("Cases recorded", len(df))
-        c[1].metric("Avg gap vs competitor", f"{df['gap_%'].mean():.1f}%")
+        c[1].metric("Avg gap vs other channels", f"{df['gap_%'].mean():.1f}%")
         c[2].metric("Renewals lost on price", int((df.outcome == "Lost").sum()))
         sm = pi.summary(df, "insurer"); sm["insurer"] = sm.insurer.map(iname)
         st.subheader("Where our quotes are priced above the market")
@@ -414,7 +414,7 @@ elif sec == "Price intelligence":
         big = sm[sm.cases >= 3]
         w = big.iloc[0] if len(big) else None
         if w is not None and w.avg_gap_pct > 5:
-            st.warning(f"AI alert: {w.insurer} is {w.avg_gap_pct}% above competitors on {int(w.cases)} cases "
+            st.warning(f"AI alert: {w.insurer} sells {w.avg_gap_pct}% cheaper through other channels on {int(w.cases)} cases "
                        f"({int(w.lost)} lost). Raise it with the insurer's rate team.")
         st.download_button("Download evidence pack (CSV)", df.to_csv(index=False), f"price-evidence-{dealer}.csv")
         st.dataframe(df.sort_values("at", ascending=False), hide_index=True, width="stretch")

@@ -135,7 +135,7 @@ elif sec == "Price intelligence":
         c = st.columns(3)
         c[0].metric("Cases", len(df)); c[1].metric("Avg gap", f"{df['gap_%'].mean():.1f}%")
         c[2].metric("Lost on price", int((df.outcome == "Lost").sum()))
-        st.subheader("By competitor channel"); st.dataframe(pi.summary(df, "channel"), hide_index=True, width="stretch")
+        st.subheader("Your own price by other channel"); st.dataframe(pi.summary(df, "channel"), hide_index=True, width="stretch")
         st.subheader("By model and city"); st.dataframe(pi.summary(df, ["model", "city"]).head(15), hide_index=True, width="stretch")
         st.download_button("Download evidence pack (CSV)", df.to_csv(index=False), f"price-evidence-{ins}.csv")
 

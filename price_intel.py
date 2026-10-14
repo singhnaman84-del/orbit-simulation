@@ -20,7 +20,7 @@ def seed(rnd):
         db.run("INSERT INTO price_obs(dealer,insurer,model,city,channel,comp_insurer,our_premium,comp_premium,"
                "source,evidence,outcome,at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                (r.dealer, r.insurer, r.model, DEALERS[r.dealer][2], rnd.choice(CHANNELS),
-                rnd.choice(list(INSURERS)), ours, theirs, rnd.choice(SOURCES),
+                r.insurer, ours, theirs, rnd.choice(SOURCES),
                 rnd.choice(["Screenshot", "Field sheet", "Customer said"]),
                 rnd.choice(["Matched & retained", "Lost", "Lost", "Pending"]), r.start_date))
 
@@ -44,27 +44,26 @@ def summary(df, by):
 def capture_form(dealer, key):
     oem = DEALERS[dealer][1]
     with st.form(key):
-        st.write("**Record a competitor quote**")
+        st.write("**Record a cheaper quote from another channel** (same insurer)")
         c1, c2, c3 = st.columns(3)
         src = c1.selectbox("Source", SOURCES)
-        ins = c1.selectbox("Our insurer quoted", list(INSURERS), format_func=lambda k: INSURERS[k][0])
+        ins = c1.selectbox("Insurer (same on both quotes)", list(INSURERS), format_func=lambda k: INSURERS[k][0])
         model = c2.selectbox("Model", [m for m, _, _ in OEMS[oem]])
         ours = c2.number_input("Our premium ₹", 1000, 200000, 12000, step=100)
-        ch = c3.selectbox("Competitor channel", CHANNELS)
-        comp_ins = c3.selectbox("Competitor's insurer", list(INSURERS), format_func=lambda k: INSURERS[k][0])
-        theirs = c3.number_input("Competitor premium ₹", 1000, 200000, 11000, step=100)
+        ch = c3.selectbox("Other channel", CHANNELS)
+        theirs = c3.number_input("Same insurer's premium on that channel ₹", 1000, 200000, 11000, step=100)
         shot = st.file_uploader("Evidence (screenshot)", type=["png", "jpg", "jpeg", "pdf"])
         out = st.selectbox("Outcome", ["Pending", "Matched & retained", "Lost"])
         st.caption("Field audits must use authorised test profiles, never a real customer's details without consent.")
         if st.form_submit_button("Save"):
             db.run("INSERT INTO price_obs(dealer,insurer,model,city,channel,comp_insurer,our_premium,comp_premium,"
                    "source,evidence,outcome,at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-                   (dealer, ins, model, DEALERS[dealer][2], ch, comp_ins, ours, theirs, src,
+                   (dealer, ins, model, DEALERS[dealer][2], ch, ins, ours, theirs, src,
                     "Screenshot" if shot else "None", out, db.now()))
             if src == "Quote match (customer)" and out == "Pending" and theirs < ours:
                 db.run("INSERT INTO approvals(kind,dealer,insurer,policy_no,detail,amount,raised_by,status,created_at)"
                        " VALUES(?,?,?,?,?,?,?,?,?)", ("Quote match", dealer, ins, model,
-                       f"Match {INSURERS[comp_ins][0]} via {ch} at {inr(theirs)} (ours {inr(ours)})",
+                       f"Match own price via {ch} at {inr(theirs)} (dealer quote {inr(ours)})",
                        ours - theirs, "Dealer", "Pending", db.now()))
                 st.success("Saved and sent to the insurer for quote-match approval.")
             else:

@@ -655,44 +655,43 @@ function lossView(){const rows=LR.map(r=>({...r,inc:+(r.paid+r.os).toFixed(1),lr
  <div class="item"><span><b>Leakage</b> · ${rows.reduce((a,r)=>a+r.else,0)} claims went to other workshops. Claim-to-workshop routing could bring repair revenue back.</span></div></div></div>
  <div class="panel"><h2>Why it matters</h2><p class="note">Insurers judge a dealer's book by its loss ratio. A healthy ratio supports better servicing terms and faster approvals; a high one invites stricter underwriting. Use it with the persistency score when negotiating.</p></div></div>`}
 V.auto=autoView;V.loss=lossView;
-const PI=[{d:'12 Oct',src:'Quote match',model:'Classic 350',ins:'Insurer A',ours:12310,ch:'Web aggregator',cins:'Insurer B',theirs:10950,st:'Pending with insurer',ev:'Screenshot'},
+const PI=[{d:'12 Oct',src:'Quote match',model:'Classic 350',ins:'Insurer A',ours:12310,ch:'Web aggregator',cins:'Insurer A',theirs:10950,st:'Pending with insurer',ev:'Screenshot'},
  {d:'11 Oct',src:'Field audit',model:'Hunter 350',ins:'Insurer C',ours:10480,ch:'Insurer website/app',cins:'Insurer C',theirs:9420,st:'Recorded',ev:'Field sheet'},
- {d:'09 Oct',src:'Lost renewal',model:'Bullet 350',ins:'Insurer C',ours:11890,ch:'POSP / agent',cins:'Insurer A',theirs:10600,st:'Lost',ev:'Customer said'},
+ {d:'09 Oct',src:'Lost renewal',model:'Bullet 350',ins:'Insurer C',ours:11890,ch:'POSP / agent',cins:'Insurer C',theirs:10600,st:'Lost',ev:'Customer said'},
  {d:'08 Oct',src:'Quote match',model:'Himalayan 450',ins:'Insurer B',ours:16420,ch:'Web aggregator',cins:'Insurer B',theirs:15380,st:'Approved · retained',ev:'Screenshot'},
  {d:'05 Oct',src:'Quote match',model:'Classic 350',ins:'Insurer A',ours:12310,ch:'Other dealer',cins:'Insurer A',theirs:11800,st:'Declined · lost',ev:'Screenshot'},
- {d:'03 Oct',src:'Field audit',model:'Meteor 350',ins:'Insurer B',ours:13050,ch:'Web aggregator',cins:'Insurer C',theirs:11640,st:'Recorded',ev:'Field sheet'},
- {d:'01 Oct',src:'Quote match',model:'Hunter 350',ins:'Insurer C',ours:10480,ch:'Web aggregator',cins:'Insurer A',theirs:9300,st:'Pending with insurer',ev:'Screenshot'}];
-const piF={src:'Quote match',model:'Classic 350',ins:'Insurer A',ours:12310,ch:'Web aggregator',cins:'Insurer B',theirs:10900};
+ {d:'03 Oct',src:'Field audit',model:'Meteor 350',ins:'Insurer B',ours:13050,ch:'Web aggregator',cins:'Insurer B',theirs:11640,st:'Recorded',ev:'Field sheet'},
+ {d:'01 Oct',src:'Quote match',model:'Hunter 350',ins:'Insurer C',ours:10480,ch:'Web aggregator',cins:'Insurer C',theirs:9300,st:'Pending with insurer',ev:'Screenshot'}];
+const piF={src:'Quote match',model:'Classic 350',ins:'Insurer A',ours:12310,ch:'Web aggregator',cins:'Insurer A',theirs:10900};
 function priceView(){const g=r=>(r.ours-r.theirs)/r.ours*100,inr=n=>'₹'+n.toLocaleString('en-IN');
  const by=['Insurer A','Insurer B','Insurer C'].map(i=>{const r=PI.filter(x=>x.ins===i);return{i,n:r.length,gap:r.length?r.reduce((a,x)=>a+g(x),0)/r.length:0,lost:r.filter(x=>/lost|Lost/.test(x.st)).length}});
  const chs=[...new Set(PI.map(x=>x.ch))].map(c=>{const r=PI.filter(x=>x.ch===c);return{c,n:r.length,gap:r.reduce((a,x)=>a+g(x),0)/r.length}}).sort((a,b)=>b.gap-a.gap);
  const worst=by.filter(b=>b.n>=2).sort((a,b)=>b.gap-a.gap)[0];
  const sel=(id,opts,v)=>`<select id="${id}">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
  const pend=PI.filter(x=>x.st==='Pending with insurer').length;$('#pin')&&($('#pin').textContent=pend);
- return head('Price intelligence','Competitor prices from quote matches, field audits and lost renewals · no automated scraping','<span class="tag b">Quote matches go to the insurer for approval</span>')+`
- <div class="kpis"><div class="kpi"><span>Cases recorded</span><b>${PI.length}</b><small>last 30 days</small></div><div class="kpi"><span>Avg gap vs competitor</span><b>${(PI.reduce((a,x)=>a+g(x),0)/PI.length).toFixed(1)}%</b><small>our quote above market</small></div><div class="kpi w"><span>Lost on price</span><b>${PI.filter(x=>/lost|Lost/.test(x.st)).length}</b></div><div class="kpi"><span>Waiting on insurers</span><b>${pend}</b><small>quote-match requests</small></div></div>
- ${worst&&worst.gap>5?`<div class="panel" style="border-color:var(--accent)"><span><b>AI alert:</b> ${worst.i} is ${worst.gap.toFixed(1)}% above competitors on ${worst.n} cases (${worst.lost} lost). Raise it with the insurer's rate team and attach the evidence pack.</span></div>`:''}
- <div class="panel"><h2>Record a competitor quote</h2><div class="form">
+ return head('Price intelligence','Same insurer, different channel: where the insurer sells cheaper elsewhere than through the dealer · no automated scraping','<span class="tag b">Quote matches go to the insurer for approval</span>')+`
+ <div class="kpis"><div class="kpi"><span>Cases recorded</span><b>${PI.length}</b><small>last 30 days</small></div><div class="kpi"><span>Avg gap vs other channels</span><b>${(PI.reduce((a,x)=>a+g(x),0)/PI.length).toFixed(1)}%</b><small>our quote above market</small></div><div class="kpi w"><span>Lost on price</span><b>${PI.filter(x=>/lost|Lost/.test(x.st)).length}</b></div><div class="kpi"><span>Waiting on insurers</span><b>${pend}</b><small>quote-match requests</small></div></div>
+ ${worst&&worst.gap>5?`<div class="panel" style="border-color:var(--accent)"><span><b>AI alert:</b> ${worst.i} sells ${worst.gap.toFixed(1)}% cheaper through other channels than through the dealer on ${worst.n} cases (${worst.lost} lost). Raise it with the insurer's rate team and attach the evidence pack.</span></div>`:''}
+ <div class="panel"><h2>Record a cheaper quote from another channel</h2><div class="form">
  <label class="f" for="pisrc">Source${sel('pisrc',['Quote match','Field audit','Lost renewal'],piF.src)}</label>
  <label class="f" for="pimodel">Model${sel('pimodel',['Classic 350','Hunter 350','Bullet 350','Meteor 350','Himalayan 450'],piF.model)}</label>
- <label class="f" for="piins">Our insurer${sel('piins',['Insurer A','Insurer B','Insurer C'],piF.ins)}</label>
+ <label class="f" for="piins">Insurer (same on both quotes)${sel('piins',['Insurer A','Insurer B','Insurer C'],piF.ins)}</label>
  <label class="f" for="piours">Our premium (₹)<input type="number" id="piours" value="${piF.ours}"></label>
  <label class="f" for="pich">Competitor channel${sel('pich',['Web aggregator','Insurer website/app','POSP / agent','Other dealer','Bank / NBFC'],piF.ch)}</label>
- <label class="f" for="picins">Competitor's insurer${sel('picins',['Insurer A','Insurer B','Insurer C'],piF.cins)}</label>
- <label class="f" for="pitheirs">Competitor premium (₹)<input type="number" id="pitheirs" value="${piF.theirs}"></label>
+ <label class="f" for="pitheirs">Same insurer's premium on that channel (₹)<input type="number" id="pitheirs" value="${piF.theirs}"></label>
  <label class="f" for="piev">Evidence<input type="file" id="piev" accept="image/*,.pdf"></label></div>
  <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn a" id="pisave">Save${piF.src==='Quote match'?' and send quote-match request to insurer':''}</button></div>
  <p class="note">Field audits use authorised test profiles only, never a real customer's details without consent.</p></div>
  <div class="cols"><div class="panel"><h2>Gap by our insurer</h2><div class="tbl"><table style="min-width:0"><tr><th>Insurer</th><th>Cases</th><th>Avg gap</th><th>Lost</th></tr>${by.map(b=>`<tr><td>${b.i}</td><td class="n">${b.n}</td><td><span class="tag ${b.gap>8?'w':b.gap>5?'b':''}">${b.gap.toFixed(1)}%</span></td><td class="n">${b.lost}</td></tr>`).join('')}</table></div></div>
  <div class="panel"><h2>Gap by competitor channel</h2><div class="tbl"><table style="min-width:0"><tr><th>Channel</th><th>Cases</th><th>Avg gap</th></tr>${chs.map(c=>`<tr><td>${c.c}</td><td class="n">${c.n}</td><td class="n">${c.gap.toFixed(1)}%</td></tr>`).join('')}</table></div></div></div>
- <div class="panel"><h2>Cases</h2><div class="tbl"><table><tr><th>Date</th><th>Source</th><th>Model</th><th>Ours</th><th>Competitor</th><th>Gap</th><th>Evidence</th><th>Status</th><th></th></tr>
- ${PI.map((r,k)=>`<tr><td>${r.d}</td><td>${r.src}</td><td>${r.model}</td><td>${r.ins}<br><b>${inr(r.ours)}</b></td><td>${r.cins} via ${r.ch}<br><b>${inr(r.theirs)}</b></td><td class="n">${g(r).toFixed(1)}%</td><td>${r.ev}</td><td><span class="tag ${/Pending/.test(r.st)?'b':/Approved/.test(r.st)?'':/lost|Lost/.test(r.st)?'w':''}">${r.st}</span></td><td>${/Pending/.test(r.st)?`<button class="btn g" data-pisim="${k}">Prototype: insurer approves</button>`:''}</td></tr>`).join('')}</table></div>
+ <div class="panel"><h2>Cases</h2><div class="tbl"><table><tr><th>Date</th><th>Source</th><th>Model</th><th>Insurer</th><th>Our price</th><th>Other channel price</th><th>Gap</th><th>Evidence</th><th>Status</th><th></th></tr>
+ ${PI.map((r,k)=>`<tr><td>${r.d}</td><td>${r.src}</td><td>${r.model}</td><td>${r.ins}</td><td><b>${inr(r.ours)}</b><br><span class="note">via dealer (ORBIT)</span></td><td><b>${inr(r.theirs)}</b><br><span class="note">via ${r.ch}</span></td><td class="n">${g(r).toFixed(1)}%</td><td>${r.ev}</td><td><span class="tag ${/Pending/.test(r.st)?'b':/Approved/.test(r.st)?'':/lost|Lost/.test(r.st)?'w':''}">${r.st}</span></td><td>${/Pending/.test(r.st)?`<button class="btn g" data-pisim="${k}">Prototype: insurer approves</button>`:''}</td></tr>`).join('')}</table></div>
  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-toast="Evidence pack (CSV and screenshots) prepared for insurers">Download evidence pack</button></div></div>`}
 V.price=priceView;
 document.addEventListener('change',e=>{const m={pisrc:'src',pimodel:'model',piins:'ins',pich:'ch',picins:'cins'};if(m[e.target.id]){piF[m[e.target.id]]=e.target.value;if(e.target.id==='pisrc')render()}if(e.target.id==='piours')piF.ours=+e.target.value;if(e.target.id==='pitheirs')piF.theirs=+e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
  if(b.id==='pisave'){piF.ours=+$('#piours').value;piF.theirs=+$('#pitheirs').value;const qm=piF.src==='Quote match'&&piF.theirs<piF.ours;
-  PI.unshift({d:'Today',src:piF.src,model:piF.model,ins:piF.ins,ours:piF.ours,ch:piF.ch,cins:piF.cins,theirs:piF.theirs,ev:$('#piev').files.length?'Screenshot':'None',st:qm?'Pending with insurer':piF.src==='Lost renewal'?'Lost':'Recorded'});
+  PI.unshift({d:'Today',src:piF.src,model:piF.model,ins:piF.ins,ours:piF.ours,ch:piF.ch,cins:piF.ins,theirs:piF.theirs,ev:$('#piev').files.length?'Screenshot':'None',st:qm?'Pending with insurer':piF.src==='Lost renewal'?'Lost':'Recorded'});
   render();toast(qm?'Quote-match request sent to '+piF.ins+' for approval':'Case saved');return}
  if(b.dataset.pisim){const r=PI[+b.dataset.pisim];r.st='Approved · retained';render();toast(r.ins+' approved the match at ₹'+r.theirs.toLocaleString('en-IN'));return}});
 
