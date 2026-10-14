@@ -56,6 +56,7 @@ td.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
 <nav class="tabs" aria-label="Portal">
 <button class="tab" data-v="overview">Overview</button>
 <button class="tab" data-v="approvals">Approvals</button>
+<button class="tab" data-v="pmatch">Price match</button>
 <button class="tab" data-v="inspections">Inspections</button>
 <button class="tab" data-v="fraud">Fraud graph</button>
 <button class="tab" data-v="telematics">Telematics</button>
@@ -73,7 +74,10 @@ const S={v:'overview',queue:[
  {id:'CL-2041',bike:'Classic 350 Chrome',dealer:'[Dealer] Lucknow',amt:'₹[x]',age:'2 h',ai:'Matches twin',st:'open'},
  {id:'CL-2043',bike:'Hunter 350',dealer:'[Dealer] Kanpur',amt:'₹[x]',age:'5 h',ai:'Matches twin',st:'open'},
  {id:'CL-2047',bike:'Meteor 350',dealer:'[Dealer] Agra',amt:'₹[x]',age:'9 h',ai:'Prior damage on tank',st:'open'},
- {id:'CL-2052',bike:'Audi Q5',dealer:'[Dealer] Noida',amt:'₹[x]',age:'1 d',ai:'Matches twin',st:'open'}],paid:false};
+ {id:'CL-2052',bike:'Audi Q5',dealer:'[Dealer] Noida',amt:'₹[x]',age:'1 d',ai:'Matches twin',st:'open'}],paid:false,pm:[
+ {id:'PM-118',dealer:'[Dealer] Lucknow',model:'Classic 350',ch:'Web aggregator',ours:12310,theirs:10950,disc:[35,15],zd:[0.42,0.48],age:'3 h',st:'open'},
+ {id:'PM-121',dealer:'[Dealer] Kanpur',model:'Hunter 350',ch:'Insurer website/app',ours:10480,theirs:9420,disc:[30,15],zd:[0.45,0.48],age:'7 h',st:'open'},
+ {id:'PM-124',dealer:'[Dealer] Agra',model:'Meteor 350',ch:'POSP / agent',ours:13050,theirs:12380,disc:[22,15],zd:[0.48,0.48],age:'1 d',st:'open'}]};
 const $=s=>document.querySelector(s);
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
 const H=(t,s)=>`<div><h1>${t}</h1><p class="sub">${s}</p></div>`;
@@ -82,6 +86,7 @@ overview:()=>H('Overview','Two-wheeler and car claims run through ORBIT workshop
 <div class="panel" style="background:var(--bar);color:#FFFFFF;border-color:var(--bar);flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center"><div><span style="font-size:13px;color:var(--bar-muted)">North-star metric · your customers on ORBIT</span><div style="font-family:var(--mono);font-size:40px;color:#FFB27A;line-height:1.1">5.0 days</div><span style="font-size:13px;color:var(--bar-muted)">Average back on road · market median 7.4</span></div><div style="font-size:14px;max-width:340px">Every service ORBIT runs for you is judged against this one number: how fast your policyholder's vehicle is back on the road.</div></div>
 <div class="kpis"><div class="kpi"><span>Avg approval time</span><b>6 h</b><small>Your in-house: [x] h</small></div><div class="kpi"><span>Avg DO time</span><b>1.2 d</b><small>Market median 2.1 d</small></div><div class="kpi"><span>Back on road</span><b>5 d</b><small>Classic 350, UP</small></div><div class="kpi"><span>Cost per claim</span><b>₹[x]</b><small>Target 30% below in-house</small></div></div>
 <div class="cols"><div class="panel"><h2>Needs you today</h2><div class="tbl"><table style="min-width:420px"><tr><th>Item</th><th>Count</th><th></th></tr>
+<tr><td>Price match requests</td><td class="n">${S.pm.filter(q=>q.st==='open').length}</td><td><button class="btn" data-go="pmatch">Review</button></td></tr>
 <tr><td>Estimates awaiting approval</td><td class="n">${S.queue.filter(q=>q.st==='open').length}</td><td><button class="btn" data-go="approvals">Review</button></td></tr>
 <tr><td>Break-in inspections done</td><td class="n">5</td><td><button class="btn g" data-go="inspections">Open</button></td></tr>
 <tr><td>Fraud links flagged</td><td class="n">2</td><td><button class="btn g" data-go="fraud">Open</button></td></tr></table></div></div>
@@ -90,6 +95,13 @@ approvals:()=>H('Estimate approvals','AI estimate checked against each vehicle\'
 <div class="panel"><div class="tbl"><table><tr><th>Claim</th><th>Vehicle</th><th>Workshop</th><th>Estimate</th><th>Waiting</th><th>Twin check</th><th>Action</th></tr>
 ${S.queue.map((q,i)=>`<tr><td class="n">${q.id}</td><td>${q.bike}</td><td>${q.dealer}</td><td class="n">${q.amt}</td><td>${q.age}</td><td>${q.ai.startsWith('Matches')?`<span class="tag">${q.ai}</span>`:`<span class="tag w">${q.ai}</span>`}</td><td>${q.st==='open'?`<button class="btn" data-ok="${i}">Approve</button> <button class="btn g" data-sv="${i}">Send surveyor</button>`:`<span class="tag b">${q.st}</span>`}</td></tr>`).join('')}</table></div>
 <p class="note">Approval sends the DO path to the workshop and updates the customer's claim tracker.</p></div>`,
+pmatch:()=>{const inr=n=>'₹'+n.toLocaleString('en-IN'),open=S.pm.filter(q=>q.st==='open');
+ return H('Price match requests','Dealers asking you to match your own price from another channel · AI reverse-calculated from the attached quote')+`
+<div class="kpis"><div class="kpi"><span>Waiting for you</span><b>${open.length}</b><small>oldest ${open.length?open[open.length-1].age:'–'}</small></div><div class="kpi"><span>Avg gap vs dealer channel</span><b>${(S.pm.reduce((a,q)=>a+(q.ours-q.theirs)/q.ours*100,0)/S.pm.length).toFixed(1)}%</b><small>same policy, your own price</small></div><div class="kpi"><span>Cheapest channel</span><b style="font-size:20px">Web aggregator</b><small>OD discount up to 35%</small></div></div>
+<div class="panel"><div class="tbl"><table><tr><th>Request</th><th>Dealer</th><th>Model</th><th>Your dealer price</th><th>Your price elsewhere</th><th>OD discount (elsewhere vs dealer)</th><th>Zero dep rate</th><th>Waiting</th><th>Action</th></tr>
+${S.pm.map((q,i)=>`<tr><td class="n">${q.id}</td><td>${q.dealer}</td><td>${q.model}</td><td class="n">${inr(q.ours)}</td><td class="n">${inr(q.theirs)}<br><span class="note">via ${q.ch}</span></td><td class="n">${q.disc[0]}% vs ${q.disc[1]}%</td><td class="n">${q.zd[0]}% vs ${q.zd[1]}%</td><td>${q.age}</td><td>${q.st==='open'?`<button class="btn" data-pmok="${i}">Approve match</button> <button class="btn g" data-pmno="${i}">Decline</button>`:`<span class="tag ${q.st==='Approved'?'':'w'}">${q.st}</span>`}</td></tr>`).join('')}</table></div>
+<p class="note">Discount and add-on rates are reverse-calculated by ORBIT from the quote the dealer attached. Approving releases the matched price to the dealer; declining records the case as lost on price.</p></div>
+<div class="panel"><h2>What the AI sees</h2><p>Your OD discount through web aggregators averages about 20 points higher than through dealers. Aligning channel discounts would remove most of these requests and protect dealer renewals.</p></div>`},
 inspections:()=>H('Break-in inspections','Geo-tagged photos from ORBIT workshops')+`
 <div class="panel"><div class="tbl"><table><tr><th>Vehicle</th><th>Lapsed</th><th>Workshop</th><th>Photos</th><th>Result</th><th></th></tr>
 <tr><td>Bullet 350</td><td>19 days</td><td>[Dealer] Lucknow</td><td>8, geo-tagged</td><td><span class="tag">No damage</span></td><td><button class="btn" data-toast="Policy cleared for issuance">Clear to issue</button></td></tr>
@@ -136,6 +148,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
  if(b.dataset.toast){toast(b.dataset.toast);return}
  if(b.dataset.ok){S.queue[b.dataset.ok].st='Approved';render();toast('Approved; workshop and customer updated');return}
  if(b.dataset.sv){S.queue[b.dataset.sv].st='Surveyor sent';render();toast('Surveyor assigned');return}
+ if(b.dataset.pmok){S.pm[b.dataset.pmok].st='Approved';render();toast('Match approved; dealer can issue at the matched price');return}
+ if(b.dataset.pmno){S.pm[b.dataset.pmno].st='Declined';render();toast('Declined; recorded as lost on price');return}
  if(b.id==='pay'){S.paid=true;render();toast('Marked as paid');return}});
 render();
 </script>

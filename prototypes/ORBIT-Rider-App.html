@@ -195,6 +195,13 @@ quotes(){setTop('Classic 350 claims in Uttar Pradesh, last 12 months','Compare i
  <div class="row small"><span>Settled ${q.settled}% of claims</span><span>Dealer earns ${q.earn}</span></div></button>`).join('')}
  <div class="card"><div class="row"><b>Compare on Bima Sugam</b><span class="small">Neutral marketplace</span></div></div>
  <button class="btn" data-go="pay">Continue with Insurer ${S.pick}</button>
+ <div class="card"><div class="row"><b>Found Insurer ${S.pick} cheaper elsewhere?</b>${S.pm?`<span class="small">${S.pm.st}</span>`:''}</div>
+ ${!S.pm?`<span class="small">Same insurer, cheaper on an aggregator, the insurer's app or an agent? Attach the quote and [Dealer name] will ask Insurer ${S.pick} to match it.</span>
+ <label class="small" for="pmfile" style="display:flex;flex-direction:column;gap:4px">Attach the quote (PDF or screenshot)<input type="file" id="pmfile" accept="image/*,.pdf"></label>
+ <button class="btn ghost small" id="pmsample">Use a sample quote</button>`:
+ S.pm.st==='Price matched'?`<span class="small">Insurer ${S.pm.ins} matched <b>₹${S.pm.theirs.toLocaleString('en-IN')}</b> (was ₹${S.pm.ours.toLocaleString('en-IN')}). Continue to pay at the matched price.</span>`:
+ `<span class="small">Read from your quote: ${S.pm.ch} · ₹${S.pm.theirs.toLocaleString('en-IN')} · OD discount about ${S.pm.disc}% (dealer ${S.pm.dd}%). Sent to [Dealer name]; Insurer ${S.pm.ins} usually replies within a day.</span>
+ <button class="btn ghost small" id="pmapprove">Prototype: insurer approves</button>`}</div>
  <p class="small">You pay the insurer directly. Your dealer is credited for servicing you.</p>`},
 callback(){const C=S.cb;
  if(!C||C.st==='closed'){setTop('Available while your policy is active','Request a call back');
@@ -343,6 +350,8 @@ document.addEventListener('click',e=>{
  if(t.id==='vbook'){S.vas.km=+($('#vkm')?.value||S.vas.km);S.vas.insp='booked';render();toast('Inspection booked');return}
  if(t.id==='vreport'){S.vas.insp='done';render();toast('Inspection report received · health 75');return}
  if(t.id==='vbuyew'){const pc={1:.022,2:.04,3:.055}[S.vas.ew];S.vas.bought.push({n:'Extended warranty +'+S.vas.ew+' yr',p:Math.round(193000*pc),d:'Health band Good · after third-party inspection'});render();toast('Extended warranty active');return}
+ if(t.id==='pmsample'){S.pm={ins:S.pick,ch:'Web aggregator',ours:12310,theirs:10950,disc:35,dd:15,st:'Waiting for insurer'};render();toast('Quote read · price-match request sent to your dealer');return}
+ if(t.id==='pmapprove'){S.pm.st='Price matched';render();toast('Insurer '+S.pm.ins+' matched your price');return}
  if(t.dataset.v)return go(t.dataset.v);
  if(t.dataset.go)return go(t.dataset.go);
  if(t.dataset.sort){S.sort=t.dataset.sort;return render()}
@@ -354,7 +363,7 @@ document.addEventListener('click',e=>{
  if(t.id==='reset'){store('orbit-consent','');$('#consent').hidden=false;return}
  if(t.id==='agree'){S.consent={msg:$('#c-msg').checked,loc:$('#c-loc').checked,tel:$('#c-tel').checked};store('orbit-consent',JSON.stringify(S.consent));$('#consent').hidden=true;render();toast('Your choices are saved');setTimeout(()=>showNotif('morning'),900);return}
 });
-document.addEventListener('change',e=>{const rc=e.target.dataset&&e.target.dataset.rc;if(rc){S.rc.done[rc]=e.target.checked;if(RC_ITEMS.every(i=>S.rc.done[i[0]])){S.rc.streak++;toast('All set! Streak '+S.rc.streak+' days')}render();return}
+document.addEventListener('change',e=>{if(e.target.id==='pmfile'&&e.target.files[0]){S.pm={ins:S.pick,ch:'Web aggregator',ours:12310,theirs:10950,disc:35,dd:15,st:'Waiting for insurer'};render();toast('Quote read · price-match request sent to your dealer');return}const rc=e.target.dataset&&e.target.dataset.rc;if(rc){S.rc.done[rc]=e.target.checked;if(RC_ITEMS.every(i=>S.rc.done[i[0]])){S.rc.streak++;toast('All set! Streak '+S.rc.streak+' days')}render();return}
  if(e.target.id==='rcm'){S.rc.morning=e.target.value;toast('Morning reminder set for '+e.target.value);return}
  if(e.target.id==='rce'){S.rc.evening=e.target.value;toast('Evening reminder set for '+e.target.value);return}
  if(e.target.id==='rcon'){S.rc.on=e.target.checked;toast(e.target.checked?'Ride-ready reminders on':'Reminders off');return}
